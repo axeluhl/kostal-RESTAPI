@@ -47,6 +47,10 @@ To use ``kostal-RESTAPI`` in a project take a look at the __main__ section in ko
 You may also run the script without any parameters to understand the command line options
 
 
+Further reading:
+----------------
+
+https://libraries.io/npm/iobroker.plenticore
 
 Disclaimer
 ----------
