@@ -57,6 +57,13 @@ The script show-writeable-settings.sh can help discover properties that may be u
 that based on permissions not all properties that the API lists as "readwrite" can actually be updated
 by a corresponding PUT request.
 
+To assemble the settings ID for a particular date to control battery loading for that day, use a Python
+expression like this:
+
+        print ("Battery:TimeControl:Conf"+datetime.date(2021, 3, 8).strftime("%a"))
+
+This assumes en_US locale. Try this: locale.setlocale(locale.LC_ALL, 'en_US')
+
 
 Further reading:
 ----------------
