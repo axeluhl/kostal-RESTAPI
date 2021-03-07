@@ -46,6 +46,17 @@ Getting started
 To use ``kostal-RESTAPI`` in a project take a look at the __main__ section in kostal-RESTAPI.py how to include it in your environment
 You may also run the script without any parameters to understand the command line options
 
+If you have a session token, you may use, e.g., something like
+
+        curl -X PUT -H 'Content-Type: application/json' -H 'Authorization: Session fb6cd3cc2840a1b95bbb06c767995a3917ca0a76803405495228c1823871e7e2' "http://kostal.axeluhl.de/api/v1/settings" --data-raw '[{"moduleid":"devices:local","settings":[{"id":"Battery:TimeControl:Enable","value":"1"}, {"id":"Battery:TimeControl:ConfMon","value":"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"}]}]'
+
+to block battery charging on Mondays (replace 0 by 1 in those 15min sections on Monday where you would not like
+the battery to get charged).
+
+The script show-writeable-settings.sh can help discover properties that may be updated. Note, however,
+that based on permissions not all properties that the API lists as "readwrite" can actually be updated
+by a corresponding PUT request.
+
 
 Further reading:
 ----------------
