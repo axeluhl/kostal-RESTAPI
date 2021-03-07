@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 #  kostal-RESTAPI - Read and write access to Kostal Inverter using /dev/api access
@@ -58,9 +58,6 @@
 #   IP adress of your Kostal inverter in BASE_URL
 #   PASSWD that you log in to the Kostal Inverter
 #
-BASE_URL = "http://192.168.178.41/api/v1"
-PASSWD = 'Knoll123'
-#
 # Nothing configurable beyond this point
 
 import sys
@@ -75,7 +72,7 @@ import hmac
 import time
 import argparse
 
-from Crypto.Cipher import AES  #windows
+from Cryptodome.Cipher import AES  #windows
 
 import binascii
 import pprint
@@ -347,10 +344,12 @@ class kostal_writeablesettings (object):
                 i = 0
                 if (LengthDict >0):                  
                     MyProcessdataids = []
+                    # FIXME has the output format changed? processdata is a nested array
                     MyProcessdataids.append(self.livedatatdict[0]['processdata'])
                     for elem in MyProcessdataids:
                         print ("Single Entry", elem["id"])
                         for subele in elem:
+                            # FIXME and here we don't find sub-element IDs
                             MyProcessDict[subele['id']]= subele["value"]
                 else:               #We have no  messages at all coming from the Inverter
                     pass                
@@ -369,6 +368,10 @@ if __name__ == "__main__":
     try:
         
         my_parser = argparse.ArgumentParser()
+        my_parser.add_argument('--baseurl', required=True,
+                            help='The base URL for your inverter, without the /api/v1 suffix')
+        my_parser.add_argument('--password', required=True,
+                            help='The password for your "'+USER_TYPE+'"')
         my_parser.add_argument('--nargs', nargs='+',
                             help='You may specify more than one parameter on the commandline e.g.: python Kostal-RESTAPI.py  -StableTime 8 -RunTime 11 -PowerThreshold 3333')
         my_parser.add_argument('-DynamicSoc',
@@ -492,6 +495,8 @@ if __name__ == "__main__":
 
         #args = my_parser.parse_args()
         args = vars(my_parser.parse_args())
+        BASE_URL = args['baseurl']+"/api/v1"
+        PASSWD = args['password']
         #print ("Length of what we have ",len(args))
         CommandlineInput = 0
         for i in args:
