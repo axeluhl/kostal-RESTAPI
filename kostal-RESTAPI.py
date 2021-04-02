@@ -54,9 +54,6 @@
 # python 3.6.2 (windows)
 # python 3.5.3 (raspbian)
 # python 3.8   (windows)
-# Please change the following (see below):
-#   IP adress of your Kostal inverter in BASE_URL
-#   PASSWD that you log in to the Kostal Inverter
 #
 # Nothing configurable beyond this point
 
@@ -71,6 +68,7 @@ import os
 import hmac
 import time
 import argparse
+import traceback
 
 from Cryptodome.Cipher import AES  #windows
 
@@ -211,7 +209,6 @@ class kostal_writeablesettings (object):
 
     # Function to write values to the Inverter  
     def writevalue(self,ID,value):
-        
         #print (self.KostalwriteableSettings.items())
     
         """
@@ -308,7 +305,6 @@ class kostal_writeablesettings (object):
             myEvents.append(Bad)
             Status = -1
         return Status, myEvents    
-        
                
         
     #No input required - once authenticated will query the Processdata of the inverter
@@ -347,7 +343,7 @@ class kostal_writeablesettings (object):
                     # FIXME has the output format changed? processdata is a nested array
                     MyProcessdataids.append(self.livedatatdict[0]['processdata'])
                     for elem in MyProcessdataids:
-                        print ("Single Entry", elem["id"])
+                        print ("Single Entry", elem[0]["id"])
                         for subele in elem:
                             # FIXME and here we don't find sub-element IDs
                             MyProcessDict[subele['id']]= subele["value"]
@@ -356,17 +352,13 @@ class kostal_writeablesettings (object):
 
         except Exception as Bad:
             print ("ran into severe error in getData routine - message is :", Bad)
+            traceback.print_exc()
             MyProcessDict['ERROR']=Bad
             Status = -1
         return Status, MyProcessDict    
-                
- 
- 
-
 
 if __name__ == "__main__":
     try:
-        
         my_parser = argparse.ArgumentParser()
         my_parser.add_argument('--baseurl', required=True,
                             help='The base URL for your inverter, without the /api/v1 suffix')
@@ -501,13 +493,12 @@ if __name__ == "__main__":
         CommandlineInput = 0
         for i in args:
             #print ("mein i ist ",i)
-            #print ("meein args i ist",args[i]) 
+            #print ("mein args i ist",args[i]) 
         
             if (str(args[i]) != 'None'):
                 #print ("Found", i , args[i])
                 CommandlineInput = 1        
                 #print ("CommandlineInput is ", CommandlineInput , " So will obeye what was specified on the commandline")
-
                 
             
         #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -610,7 +601,6 @@ if __name__ == "__main__":
                 mykostalsettings.KostalwriteableSettings['Battery:Type'] = args['WriteBatteryDeviceType']
                 mykostalsettings.writevalue('Battery:Type',mykostalsettings.KostalwriteableSettings['Battery:Type'])
                 #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['Battery:Type'] )                
-                                              
 
             if (str(args['ReadPowerMeterData']) != 'None'):
                 PowerMeterView = "/processdata/devices:local:powermeter"     #Everything from Smartmeter
@@ -635,10 +625,6 @@ if __name__ == "__main__":
                 MyString2DataStatus, MyString2LiveData = mykostalsettings.getLiveData(Stringview2)
                 print("Here are all the Values from ReadString2Data :")
                 pp.pprint(MyString2LiveData) 
-
-                                
-                
-
 
             LogMeOut (headers,BASE_URL)
         #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
