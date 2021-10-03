@@ -204,13 +204,7 @@ def cleandata(inputstring):
 class kostal_writeablesettings (object): 
     def __init__ (self):
         
-        self.KostalwriteableSettings= {
-            'Battery:BackupMode:Enable':'',
-            'Battery:DynamicSoc:Enable':'',
-            'Battery:MinHomeComsumption': '',
-            'Battery:MinSoc': '',
-            'Battery:SmartBatteryControl:Enable': '',
-            'Battery:Strategy': ''}
+        self.KostalwriteableSettings= {}
 
     # Function to read values from the Inverter
     def readvalue(self, idsArray):
@@ -249,23 +243,25 @@ class kostal_writeablesettings (object):
               stringsPerDay=stringsPerDay+[setting['value']]
         return stringsPerDay
 
-    def getUpdatedTimeControls(self, durationFromNow, value):
+    def getUpdatedTimeControls(self, durationFromNowInMinutes, value):
         existingTimeControls = self.readtimecontrols()
         localizedNow = datetime.now(TZ)
-        intervals=durationFromNow//INTERVAL
+        intervals=abs(durationFromNowInMinutes//INTERVAL)
         intervalStart=localizedNow
         for i in range(0, intervals):
-          #propertyId = "Battery:TimeControl:Conf"+intervalStart.strftime("%a")
           weekday = intervalStart.weekday()
           startOfDay = datetime(intervalStart.year, intervalStart.month, intervalStart.day, tzinfo=intervalStart.tzinfo)
           durationSinceStartOfDay = intervalStart - startOfDay
           slot = durationSinceStartOfDay // INTERVAL
           existingTimeControls[weekday] = existingTimeControls[weekday][:slot]+str(value)+existingTimeControls[weekday][slot+1:]
-          intervalStart = intervalStart + INTERVAL
+          intervalStart = intervalStart + INTERVAL*(durationFromNowInMinutes/abs(durationFromNowInMinutes))
         return existingTimeControls
 
     # Function to write values to the Inverter  
     def writevalue(self,ID,value):
+      self.writevalues({ID: value})
+
+    def writevalues(self,idsToValues):
         #print (self.KostalwriteableSettings.items())
     
         """
@@ -276,18 +272,19 @@ class kostal_writeablesettings (object):
         Battery:MinSoc                          5 up to 100 [Unit in Percent, with 5% steps: e.g. 35]
         """
         
-        self.ID = str(ID)
-        self.value = str(value)
-        self.mypayload_settings = '"settings"'+':[{'+'"value"'+':"'+self.value+'"'+","+'"id"'+':'+'"'+self.ID+'"'+'}]}]'
-        self.mypayload_moduleID =  '[{"moduleid": "devices:local",'
-        self.mypayload = self.mypayload_moduleID + self.mypayload_settings
+        self.mypayload_settings = '"settings":['
+        for id in idsToValues:
+            self.mypayload_settings = self.mypayload_settings + '{"value":"'+idsToValues[id]+'","id":"'+id+'"},'
+        self.mypayload_settings = self.mypayload_settings[:len(self.mypayload_settings)-1] + ']'
+        self.mypayload_moduleID =  '"moduleid": "devices:local",'
+        self.mypayload = '[{' + self.mypayload_moduleID + self.mypayload_settings + '}]'
         self.settingsurl = BASE_URL + "/settings"
         try:
             self.response = requests.put(url = self.settingsurl, data = self.mypayload, headers = headers)
             self.HtmlReturn = str(self.response)
             self.HtmlOK = "200"
             if (self.HtmlReturn.find(self.HtmlOK)):
-                print ("Successfully changed Parameter :", self.ID, "to value ", self.value)
+                print ("Successfully changed parameters", idsToValues)
             else:
                 print ("Something went wrong")
                 print (self.HtmlReturn)
@@ -509,7 +506,7 @@ if __name__ == "__main__":
                            action='store',
                            nargs = 2,
                            type = int,
-                           help='<minutes> <value>; Sets battery control for the next so many <minutes> to value <value>')
+                           help='<minutes> <value>; Sets battery control for the next so many <minutes> to value <value>; value=0 means no limits; value=1 means charging blocked; value=2 means discharging blocked')
 
         my_parser.add_argument('-ReadLiveData',
                            action='store',
@@ -661,10 +658,10 @@ if __name__ == "__main__":
                 updatedtimecontrols=mykostalsettings.getUpdatedTimeControls(
                             timedelta(minutes=args['SetBatteryTimeControl'][0]),
                             args['SetBatteryTimeControl'][1])
+                weekdaysToValues={}
                 for weekday in range(0, len(WEEKDAYS)):
-                    print('Updating '+WEEKDAYS[weekday]+' to '+updatedtimecontrols[weekday])
                     mykostalsettings.KostalwriteableSettings['Battery:TimeControl:Conf'+WEEKDAYS[weekday]] = updatedtimecontrols[weekday]
-                    mykostalsettings.writevalue('Battery:TimeControl:Conf'+WEEKDAYS[weekday],mykostalsettings.KostalwriteableSettings['Battery:TimeControl:Conf'+WEEKDAYS[weekday]])
+                mykostalsettings.writevalues(mykostalsettings.KostalwriteableSettings)
 
             if (str(args['ReadBatteryTimeControl']) != 'None'):
                 timecontrols=mykostalsettings.readtimecontrols()
