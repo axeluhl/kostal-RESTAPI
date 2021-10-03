@@ -224,12 +224,9 @@ class kostal_writeablesettings (object):
         self.mypayload_settings = '"settings"'+':[{'+'"value"'+':"'+self.value+'"'+","+'"id"'+':'+'"'+self.ID+'"'+'}]}]'
         self.mypayload_moduleID =  '[{"moduleid": "devices:local",'
         self.mypayload = self.mypayload_moduleID + self.mypayload_settings
-
         self.settingsurl = BASE_URL + "/settings"
         try:
-
             self.response = requests.put(url = self.settingsurl, data = self.mypayload, headers = headers)
-
             self.HtmlReturn = str(self.response)
             self.HtmlOK = "200"
             if (self.HtmlReturn.find(self.HtmlOK)):
@@ -237,7 +234,6 @@ class kostal_writeablesettings (object):
             else:
                 print ("Something went wrong")
                 print (self.HtmlReturn)
-            
         except Exception as Bad:
             print ("Kostal-RESTAPI ran into error", Bad)
            
@@ -366,16 +362,25 @@ if __name__ == "__main__":
                             help='The password for your "'+USER_TYPE+'"')
         my_parser.add_argument('--nargs', nargs='+',
                             help='You may specify more than one parameter on the commandline e.g.: python Kostal-RESTAPI.py  -StableTime 8 -RunTime 11 -PowerThreshold 3333')
+        my_parser.add_argument('-TimeControlEnable',
+                            action='store',
+                            type = int,
+                            choices=[0,1],
+                            help='Enable/disable the controlling of battery state by time 0=inactive, 1=active')
+        for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']:
+                my_parser.add_argument('-TimeControlConf'+day,
+                            action='store',
+                            help='Control battery state for 15min intervals on '+day+'; 0=no limitation; 1=battery charge blocked; 2=battery discharge blocked; example: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000')
         my_parser.add_argument('-DynamicSoc',
                             action='store',
                             type = int,
                             choices=[0,1],
-                            help='Set the Dynamic State of Charge 0=inactive, 1=active')        
+                            help='Set the Dynamic State of Charge 0=inactive, 1=active')
         my_parser.add_argument('-SetMinSoc',
                             action='store',
                             type = int,
                             choices=[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95],
-                            help='Set your Battery minimum State of Charge - valid values in increments of 5 ranging from 5 to 95')                             
+                            help='Set your Battery minimum State of Charge - valid values in increments of 5 ranging from 5 to 95')
 
         my_parser.add_argument('-MinHomeComsumption',
                             action='store',
@@ -510,12 +515,18 @@ if __name__ == "__main__":
             mykostalsettings = kostal_writeablesettings()
             #
             # All Parameters
-
+            if (str(args['TimeControlEnable']) != 'None'):
+                mykostalsettings.KostalwriteableSettings['Battery:TimeControl:Enable'] = args['TimeControlEnable']
+                mykostalsettings.writevalue('Battery:TimeControl:Enable',mykostalsettings.KostalwriteableSettings['Battery:TimeControl:Enable'])
+            
+            for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']:
+              if (str(args['TimeControlConf'+day]) != 'None'):
+                mykostalsettings.KostalwriteableSettings['Battery:TimeControl:Conf'+day] = args['TimeControlConf'+day]
+                mykostalsettings.writevalue('Battery:TimeControl:Conf'+day,mykostalsettings.KostalwriteableSettings['Battery:TimeControl:Conf'+day])
+            
             if (str(args['DynamicSoc']) != 'None'):
-                print ("Mein DynamicSoc ist ",args['DynamicSoc'])
                 mykostalsettings.KostalwriteableSettings['Battery:DynamicSoc:Enable'] = args['DynamicSoc']
                 mykostalsettings.writevalue('Battery:DynamicSoc:Enable',mykostalsettings.KostalwriteableSettings['Battery:DynamicSoc:Enable'])
-                #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['Battery:MinSoc'])            
             
             if (str(args['SetMinSoc']) != 'None'):
                 mykostalsettings.KostalwriteableSettings['Battery:MinSoc'] = args['SetMinSoc']
@@ -536,7 +547,6 @@ if __name__ == "__main__":
                 mykostalsettings.KostalwriteableSettings['Battery:Strategy'] = args['Strategy']
                 mykostalsettings.writevalue('Battery:Strategy',mykostalsettings.KostalwriteableSettings['Battery:Strategy'])
                 #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['Battery:MinSoc']) 
-
             
             if (str(args['ShadowMgmt']) != 'None'):
                 mykostalsettings.KostalwriteableSettings['Generator:ShadowMgmt:Enable'] = args['ShadowMgmt']
@@ -562,7 +572,6 @@ if __name__ == "__main__":
                 mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:RunTime'] = args['RunTime']
                 mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:RunTime',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:RunTime'])
                 #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:RunTime'] ) 
-                
 
             if (str(args['MaxNoOfSwitchingCyclesPerDay']) != 'None'):
                 mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay'] = args['MaxNoOfSwitchingCyclesPerDay']
