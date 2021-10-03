@@ -371,7 +371,7 @@ if __name__ == "__main__":
                             type = int,
                             choices=[0,1],
                             help='Set the Dynamic State of Charge 0=inactive, 1=active')        
-        my_parser.add_argument('-SetMinsoc',
+        my_parser.add_argument('-SetMinSoc',
                             action='store',
                             type = int,
                             choices=[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95],
@@ -517,8 +517,8 @@ if __name__ == "__main__":
                 mykostalsettings.writevalue('Battery:DynamicSoc:Enable',mykostalsettings.KostalwriteableSettings['Battery:DynamicSoc:Enable'])
                 #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['Battery:MinSoc'])            
             
-            if (str(args['SetMinsoc']) != 'None'):
-                mykostalsettings.KostalwriteableSettings['Battery:MinSoc'] = args['SetMinsoc']
+            if (str(args['SetMinSoc']) != 'None'):
+                mykostalsettings.KostalwriteableSettings['Battery:MinSoc'] = args['SetMinSoc']
                 mykostalsettings.writevalue('Battery:MinSoc',mykostalsettings.KostalwriteableSettings['Battery:MinSoc'])
                 #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['Battery:MinSoc'])
 
