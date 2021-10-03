@@ -10,7 +10,9 @@ timezoneName = 'Europe/Berlin'  # to come from Kostal  scb:time/Timezone setting
 timepoint = datetime(2021, 3, 7, 23, 20, 0)  # 2021-03-07T10:07:00 without timezone spec ("naive")
 tz=timezone(timezoneName)
 localizedTimepoint = tz.localize(timepoint)
+localizedNow = datetime.now(tz)
 print(localizedTimepoint)
+print(localizedNow)
 propertyId = "Battery:TimeControl:Conf"+localizedTimepoint.strftime("%a")
 print(propertyId)
 # Idea: obtain dayString from property, then update one or more digits and write back

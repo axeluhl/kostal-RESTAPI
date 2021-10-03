@@ -53,6 +53,10 @@ If you have a session token, you may use, e.g., something like
 to block battery charging on Mondays (replace 0 by 1 in those 15min sections on Monday where you would not like
 the battery to get charged).
 
+If you'd like to find out the current charge/discharge limitations, try
+
+        curl -d '[{"moduleid":"devices:local","settingids":["Battery:TimeControl:ConfMon","Battery:TimeControl:ConfTue","Battery:TimeControl:ConfWed","Battery:TimeControl:ConfThu","Battery:TimeControl:ConfFri","Battery:TimeControl:ConfSat","Battery:TimeControl:ConfSun"]}]' -X POST -H 'Content-Type: application/json' -H 'Authorization: Session 138a29f5fbbced442c959a279566e1ddee5c27adccedadf333e6603a0b2a143d' http://kostal.axeluhl.de/api/v1/settings
+
 The script show-writeable-settings.sh can help discover properties that may be updated. Note, however,
 that based on permissions not all properties that the API lists as "readwrite" can actually be updated
 by a corresponding PUT request.
@@ -60,10 +64,22 @@ by a corresponding PUT request.
 To assemble the settings ID for a particular date to control battery loading for that day, use a Python
 expression like this:
 
+        import datetime
         print ("Battery:TimeControl:Conf"+datetime.date(2021, 3, 8).strftime("%a"))
 
-This assumes en_US locale. Try this: locale.setlocale(locale.LC_ALL, 'en_US')
+This assumes en_US locale. Try this:
 
+        import locale
+        locale.setlocale(locale.LC_ALL, 'en_US')
+
+New options -TimeControlEnable and -TimeControlConf[Day] with [Day] being one of Mon, Tue, Wed, Thu, Fri, Sat, or Sun
+are now supported. TimeControlEnable accepts 0 and 1 as values; the TimeControlConf options receive strings
+of form 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+with 0, 1, or 2 for each digit with 0 meaning no limit, 1 meaning charge blocked, 2 meaning discharge blocked.
+
+Example usage:
+
+  ./kostal-RESTAPI.py --baseurl http://kostal.example.com --password 'my-secret-password' -TimeControlConfMon 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 
 Further reading:
 ----------------
