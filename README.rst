@@ -81,6 +81,12 @@ Example usage:
 
   ./kostal-RESTAPI.py --baseurl http://kostal.example.com --password 'my-secret-password' -TimeControlConfMon 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 
+Setting battery time control for a time period starting now:
+
+  ./kostal-RESTAPI.py --baseurl http://kostal.example.com --password 'my-secret-password' -SetBatteryTimeControl 60 2
+
+blocks battery discharge (value 2) for the next 60 minutes, starting now.
+
 Further reading:
 ----------------
 
