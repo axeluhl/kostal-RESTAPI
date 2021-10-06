@@ -180,7 +180,7 @@ def LogMeIn(BASE_URL, PASSWD):
         print("authorization NOT OK")
         sys.exit()
     else:
-        print ("Authentication successful")
+        print ("Authentication successful", file=sys.stderr)
     return headers
     
 
@@ -264,7 +264,6 @@ class kostal_writeablesettings (object):
       self.writevalues({ID: value})
 
     def writevalues(self,idsToValues):
-        #print (self.KostalwriteableSettings.items())
     
         """
         Supported IDs and Values
@@ -286,10 +285,11 @@ class kostal_writeablesettings (object):
             self.HtmlReturn = str(self.response)
             self.HtmlOK = "200"
             if (self.HtmlReturn.find(self.HtmlOK)):
-                print ("Successfully changed parameters", idsToValues)
+                print ("Successfully changed parameters", file=sys.stderr)
+                print(json.dumps(idsToValues))
             else:
-                print ("Something went wrong")
-                print (self.HtmlReturn)
+                print ("Something went wrong", file=sys.stderr)
+                print (self.HtmlReturn, file=sys.stderr)
         except Exception as Bad:
             print ("Kostal-RESTAPI ran into error", Bad)
            
@@ -667,7 +667,8 @@ if __name__ == "__main__":
 
             if (str(args['ReadBatteryTimeControl']) != 'None'):
                 timecontrols=mykostalsettings.readtimecontrols()
-                print('stringsPerDay: '+str(timecontrols))
+                print('stringsPerDay ('+str(WEEKDAYS)+'): ', file=sys.stderr)
+                print('['+', '.join('"{0}"'.format(w) for w in timecontrols)+']')
 
             if (str(args['ReadLiveData']) != 'None'):
                 StandardLiveView = "/processdata/devices:local"              # The standard stuff
