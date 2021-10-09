@@ -2,7 +2,6 @@
 #include <unistd.h>
 
 int main(int argc, char** args) {
-  printf("argc: %i\n", argc);
   char* scriptPath = "kostal-RESTAPI.py";
   char* catSecretArgs[argc+5];
   catSecretArgs[0] = scriptPath;
