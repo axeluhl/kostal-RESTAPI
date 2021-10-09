@@ -1,0 +1,2 @@
+#!/bin/bash
+kostal-RESTAPI -SetBatteryTimeControl 10080 $1
