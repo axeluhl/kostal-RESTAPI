@@ -179,8 +179,6 @@ def LogMeIn(BASE_URL, PASSWD):
     if not authOK:
         print("authorization NOT OK")
         sys.exit()
-    else:
-        print ("Authentication successful", file=sys.stderr)
     return headers
     
 
@@ -395,7 +393,6 @@ class kostal_writeablesettings (object):
                     # FIXME has the output format changed? processdata is a nested array
                     MyProcessdataids.append(self.livedatatdict[0]['processdata'])
                     for elem in MyProcessdataids:
-                        print ("Single Entry", elem[0]["id"])
                         for subele in elem:
                             # FIXME and here we don't find sub-element IDs
                             MyProcessDict[subele['id']]= subele["value"]
@@ -667,25 +664,21 @@ if __name__ == "__main__":
 
             if (str(args['ReadBatteryTimeControl']) != 'None'):
                 timecontrols=mykostalsettings.readtimecontrols()
-                print('stringsPerDay ('+str(WEEKDAYS)+'): ', file=sys.stderr)
                 print('['+', '.join('"{0}"'.format(w) for w in timecontrols)+']')
 
             if (str(args['ReadLiveData']) != 'None'):
                 StandardLiveView = "/processdata/devices:local"              # The standard stuff
                 MyLiveDataStatus, MyLiveData = mykostalsettings.getLiveData(StandardLiveView)
-                print("Here are all the Values from ReadLiveData :")
                 pp.pprint(MyLiveData) 
 
             if (str(args['ReadACData']) != 'None'):
                 ACView =  "/processdata/devices:local:ac" 
                 MyACDataStatus, MyACLiveData = mykostalsettings.getLiveData(ACView)
-                print("Here are all the Values from ReadACData :")
                 pp.pprint(MyACLiveData)                 
 
             if (str(args['ReadBatteryData']) != 'None'):
                 BatteryView = "/processdata/devices:local:battery"           #Everything from Battery 
                 MyBatteryStatus, MyBatteryLiveData = mykostalsettings.getLiveData(BatteryView)
-                print("Here are all the Values from ReadBatteryData :")
                 pp.pprint(MyBatteryLiveData)  
                 
             if (str(args['WriteBatteryDeviceType']) != 'None'):                   
@@ -696,25 +689,21 @@ if __name__ == "__main__":
             if (str(args['ReadPowerMeterData']) != 'None'):
                 PowerMeterView = "/processdata/devices:local:powermeter"     #Everything from Smartmeter
                 MyPowerMeterStatus, MyPowerMeterLiveData = mykostalsettings.getLiveData(PowerMeterView)
-                print("Here are all the Values from ReadPowerMeterData :")
                 pp.pprint(MyPowerMeterLiveData)                 
 
             if (str(args['ReadStatisticsData']) != 'None'):
                 StatisticsView = "/processdata/scb:statistic:EnergyFlow"     #All the Statistics stuff
                 MyStaticsDataStatus, MyStatisticsLiveData = mykostalsettings.getLiveData(StatisticsView)
-                print("Here are all the Values from ReadStatisticsData :")
                 pp.pprint(MyStatisticsLiveData)                 
 
             if (str(args['ReadString1Data']) != 'None'):
                 Stringview1 = "/processdata/devices:local:pv1"
                 MyString1DataStatus, MyString1LiveData = mykostalsettings.getLiveData(Stringview1)
-                print("Here are all the Values from ReadString1Data :")
                 pp.pprint(MyString1LiveData)                 
 
             if (str(args['ReadString2Data']) != 'None'):
                 Stringview2 = "/processdata/devices:local:pv2"
                 MyString2DataStatus, MyString2LiveData = mykostalsettings.getLiveData(Stringview2)
-                print("Here are all the Values from ReadString2Data :")
                 pp.pprint(MyString2LiveData) 
 
             LogMeOut (headers,BASE_URL)
@@ -837,22 +826,16 @@ if __name__ == "__main__":
                 ProberDataStataus, ProberViewData = mykostalsettings.getLiveData(ProberView)
                 
                 print("-----------------------------------------")
-                print("Here are all the Values from MyLiveData :")
                 pp.pprint(MyLiveData)
                 print("-----------------------------------------")
-                print("Here are all the Values from MyACLiveData :")
                 pp.pprint(MyACLiveData)
                 print("-----------------------------------------")
-                print("Here are all the Values from MyBatteryLiveData :")            
                 pp.pprint(MyBatteryLiveData)
                 print("-----------------------------------------")
-                print("Here are all the Values from MyPowerMeterLiveData :")            
                 pp.pprint(MyPowerMeterLiveData)
                 print("-----------------------------------------")
-                print("Here are all the Values from MyStatisticsLiveData :")            
                 pp.pprint(MyStatisticsLiveData)
                 print("-----------------------------------------")
-                print("Here are all the Values from MyString1LiveData and MyString2LiveData :")
                 pp.pprint(MyString1LiveData)
                 pp.pprint(MyString2LiveData)
                 #pp.pprint (ProberViewData)  HomeOwn_P
@@ -869,7 +852,7 @@ if __name__ == "__main__":
                 print ("----------------------------------------------------------")
                 
                 i = i +1
-            endtime =time.time()
+            endtime = time.time()
             Elapsedtime = endtime-starttime
             print ("My elapsed time was", round(Elapsedtime,1)," seconds - I ran the loop for ", i," time(s)")
             
