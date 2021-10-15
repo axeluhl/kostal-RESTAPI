@@ -55,6 +55,22 @@ of that "kostal" group access to your inverter. Make sure this is what you want.
 Getting started
 ---------------
 
+Change mode/ownerships for kostal-RESTAPI.h.template to a privileged used, then set your base URL and password,
+then copy to kostal-RESTAPI.h with the same privileged permissions. Afterwards, as the privileged user,
+compile using
+
+        gcc -o kostal-RESTAPI kostal-RESTAPI.c
+
+with the privileged user, resulting in an executable "kostal-RESTAPI". chmod 711 kostal-RESTAPI to make it executable
+but not readable by all other users. This then allows you to run something like this, without password entry:
+
+        ./kostal-RESTAPI -ReadString1Data 1
+
+        {'I': 2.92435e-05, 'P': -0.1151212305, 'U': 8.2680463791}
+
+Note that anyone with exection permission on the resulting kostal-RESTAPI file has access to the inverter
+using the baked-in password.
+
 To use ``kostal-RESTAPI`` in a project take a look at the __main__ section in kostal-RESTAPI.py how to include it in your environment
 You may also run the script without any parameters to understand the command line options
 
