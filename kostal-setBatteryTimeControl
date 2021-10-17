@@ -1,2 +1,19 @@
 #!/bin/bash
+# Set battery control status for $1 minutes (negative values mean starting
+# now and going backwards in time) to the value $2
+# Valid values for $2 are 0, 1, and 2, with the following meaning:
+#  0: allow charging and discharging
+#  1: disallow charging
+#  2: disallow discharging
+# Example:
+#   kostal-setBatteryTimeControl 240 2
+# This will disable battery discharge for 240 minutes starting now.
+
+# Remember the current settings:
+currentValues=`kostal-RESTAPI -ReadBatteryTimeControl 1`
+# Update setting according to parameter specification
 kostal-RESTAPI -SetBatteryTimeControl $1 $2
+# Now, in the background, wait for $1 minutes, then restore the settings remembered:
+sleepTime=$(( 60 * $1 ))
+echo "Going to sleep in background for ${sleepTime} seconds ($1 minutes), then restoring old battery control values." >&2
+nohup bash -c "sleep ${sleepTime}; kostal-RESTAPI -SetBatteryTimeControlJson '${currentValues}' | logger -t 'Restoring Battery Control Settings'" >/dev/null 2>/dev/null &
