@@ -203,7 +203,6 @@ def cleandata(inputstring):
          
 class kostal_writeablesettings (object): 
     def __init__ (self):
-        
         self.KostalwriteableSettings= {}
 
     # Function to read values from the Inverter
@@ -231,22 +230,29 @@ class kostal_writeablesettings (object):
             print ("Kostal-RESTAPI ran into error", Bad)
 
     def readtimecontrols(self):
-        settings=[]
-        for day in WEEKDAYS:
-          settings=settings+['Battery:TimeControl:Conf'+day]
-        jsonBatteryTimeControlSettings=mykostalsettings.readvalue(settings)
-        resultSettings=jsonBatteryTimeControlSettings[0]['settings']
+        resultSettings=self.readtimecontrolsJson()
         stringsPerDay=[]
         for day in WEEKDAYS:
           for setting in resultSettings:
-            if setting['id'] == 'Battery:TimeControl:Conf'+day:
+            if setting['id'] == self.getBatteryTimeControlPropertyForDay(day):
               stringsPerDay=stringsPerDay+[setting['value']]
         return stringsPerDay
+
+    def getBatteryTimeControlPropertyForDay(self, dayNameFromWEEKDAYS):
+      return 'Battery:TimeControl:Conf'+day
+
+    def readtimecontrolsJson(self):
+        settings=[]
+        for day in WEEKDAYS:
+          settings=settings+[self.getBatteryTimeControlPropertyForDay(day)]
+        jsonBatteryTimeControlSettings=mykostalsettings.readvalue(settings)
+        resultSettings=jsonBatteryTimeControlSettings[0]['settings']
+        return resultSettings
 
     def getUpdatedTimeControls(self, durationFromNowInMinutes, value):
         existingTimeControls = self.readtimecontrols()
         localizedNow = datetime.now(TZ)
-        intervals=abs(durationFromNowInMinutes//INTERVAL)
+        intervals=max(1, abs(durationFromNowInMinutes//INTERVAL))
         intervalStart=localizedNow
         for i in range(0, intervals):
           weekday = intervalStart.weekday()
@@ -586,8 +592,8 @@ if __name__ == "__main__":
 
             for day in WEEKDAYS:
               if (str(args['TimeControlConf'+day]) != 'None'):
-                mykostalsettings.KostalwriteableSettings['Battery:TimeControl:Conf'+day] = args['TimeControlConf'+day]
-                mykostalsettings.writevalue('Battery:TimeControl:Conf'+day,mykostalsettings.KostalwriteableSettings['Battery:TimeControl:Conf'+day])
+                mykostalsettings.KostalwriteableSettings[mykostalsettings.getBatteryTimeControlPropertyForDay(day)] = args['TimeControlConf'+day]
+                mykostalsettings.writevalue(mykostalsettings.getBatteryTimeControlPropertyForDay(day),mykostalsettings.KostalwriteableSettings[mykostalsettings.getBatteryTimeControlPropertyForDay(day)])
             
             if (str(args['DynamicSoc']) != 'None'):
                 mykostalsettings.KostalwriteableSettings['Battery:DynamicSoc:Enable'] = args['DynamicSoc']
@@ -659,12 +665,13 @@ if __name__ == "__main__":
                             args['SetBatteryTimeControl'][1])
                 weekdaysToValues={}
                 for weekday in range(0, len(WEEKDAYS)):
-                    mykostalsettings.KostalwriteableSettings['Battery:TimeControl:Conf'+WEEKDAYS[weekday]] = updatedtimecontrols[weekday]
+                    mykostalsettings.KostalwriteableSettings[mykostalsettings.getBatteryTimeControlPropertyForDay(WEEKDAYS[weekday])] = updatedtimecontrols[weekday]
                 mykostalsettings.writevalues(mykostalsettings.KostalwriteableSettings)
 
             if (str(args['ReadBatteryTimeControl']) != 'None'):
-                timecontrols=mykostalsettings.readtimecontrols()
-                print('['+', '.join('"{0}"'.format(w) for w in timecontrols)+']')
+                timecontrols=mykostalsettings.readtimecontrolsJson()
+                print(json.dumps(timecontrols))
+                #print('['+', '.join('"{0}"'.format(w) for w in timecontrols)+']')
 
             if (str(args['ReadLiveData']) != 'None'):
                 StandardLiveView = "/processdata/devices:local"              # The standard stuff
