@@ -13,7 +13,11 @@
 currentValues=`kostal-RESTAPI -ReadBatteryTimeControl 1`
 # Update setting according to parameter specification
 kostal-RESTAPI -SetBatteryTimeControl $1 $2
-# Now, in the background, wait for $1 minutes, then restore the settings remembered:
-sleepTime=$(( 60 * $1 ))
-echo "Going to sleep in background for ${sleepTime} seconds ($1 minutes), then restoring old battery control values." >&2
-nohup bash -c "sleep ${sleepTime}; kostal-RESTAPI -SetBatteryTimeControlJson '${currentValues}' | logger -t 'Restoring Battery Control Settings'" >/dev/null 2>/dev/null &
+if [ $1 -lt 0 ]; then
+  echo "Time provided ($1) is negative. Will not wait for a negative time to restore things (would't know how to do this)" >&2
+else
+  # Now, in the background, wait for $1 minutes, then restore the settings remembered:
+  sleepTime=$(( 60 * $1 ))
+  echo "Going to sleep in background for ${sleepTime} seconds ($1 minutes), then restoring old battery control values." >&2
+  nohup bash -c "sleep ${sleepTime}; kostal-RESTAPI -SetBatteryTimeControlJson '${currentValues}' | logger -t 'Restoring Battery Control Settings'" >/dev/null 2>/dev/null &
+fi
