@@ -230,36 +230,41 @@ class kostal_writeablesettings (object):
             print ("Kostal-RESTAPI ran into error", Bad)
 
     def readtimecontrols(self):
-        resultSettings=self.readtimecontrolsJson()
+        resultSettings=self.readTimeControlsAsMap()
         stringsPerDay=[]
         for day in WEEKDAYS:
-          for setting in resultSettings:
-            if setting['id'] == self.getBatteryTimeControlPropertyForDay(day):
-              stringsPerDay=stringsPerDay+[setting['value']]
+            stringsPerDay=stringsPerDay+[resultSettings[self.getBatteryTimeControlPropertyForDay(day)]]
         return stringsPerDay
 
     def getBatteryTimeControlPropertyForDay(self, dayNameFromWEEKDAYS):
-      return 'Battery:TimeControl:Conf'+day
+      return 'Battery:TimeControl:Conf'+dayNameFromWEEKDAYS
 
-    def readtimecontrolsJson(self):
+    def getBatteryTimeControlPropertyForDayNumber(self, dayNumberStartingWithZero):
+      return self.getBatteryTimeControlPropertyForDay(WEEKDAYS[dayNumberStartingWithZero])
+
+    def readTimeControlsAsMap(self):
         settings=[]
         for day in WEEKDAYS:
           settings=settings+[self.getBatteryTimeControlPropertyForDay(day)]
         jsonBatteryTimeControlSettings=mykostalsettings.readvalue(settings)
         resultSettings=jsonBatteryTimeControlSettings[0]['settings']
-        return resultSettings
+        result={}
+        for resultSetting in resultSettings:
+          result[resultSetting['id']]=resultSetting['value']
+        return result
 
     def getUpdatedTimeControls(self, durationFromNowInMinutes, value):
-        existingTimeControls = self.readtimecontrols()
+        existingTimeControls = self.readTimeControlsAsMap()
         localizedNow = datetime.now(TZ)
         intervals=max(1, abs(durationFromNowInMinutes//INTERVAL))
         intervalStart=localizedNow
         for i in range(0, intervals):
-          weekday = intervalStart.weekday()
+          weekdayNumber = intervalStart.weekday()
+          weekdayPropertyName = self.getBatteryTimeControlPropertyForDayNumber(weekdayNumber)
           startOfDay = datetime(intervalStart.year, intervalStart.month, intervalStart.day, tzinfo=intervalStart.tzinfo)
           durationSinceStartOfDay = intervalStart - startOfDay
           slot = durationSinceStartOfDay // INTERVAL
-          existingTimeControls[weekday] = existingTimeControls[weekday][:slot]+str(value)+existingTimeControls[weekday][slot+1:]
+          existingTimeControls[weekdayPropertyName] = existingTimeControls[weekdayPropertyName][:slot]+str(value)+existingTimeControls[weekdayPropertyName][slot+1:]
           intervalStart = intervalStart + INTERVAL*(durationFromNowInMinutes/abs(durationFromNowInMinutes))
         return existingTimeControls
 
@@ -513,6 +518,11 @@ if __name__ == "__main__":
                            type = int,
                            help='<minutes> <value>; Sets battery control for the next so many <minutes> to value <value>; value=0 means no limits; value=1 means charging blocked; value=2 means discharging blocked')
 
+        my_parser.add_argument('-SetBatteryTimeControlJson',
+                           action='store',
+                           nargs = 1,
+                           help='Sets battery control based on a JSON document that follows the format of the output of -ReadBatteryTimeControl')
+
         my_parser.add_argument('-ReadLiveData',
                            action='store',
                            type = int,
@@ -664,12 +674,15 @@ if __name__ == "__main__":
                             timedelta(minutes=args['SetBatteryTimeControl'][0]),
                             args['SetBatteryTimeControl'][1])
                 weekdaysToValues={}
-                for weekday in range(0, len(WEEKDAYS)):
-                    mykostalsettings.KostalwriteableSettings[mykostalsettings.getBatteryTimeControlPropertyForDay(WEEKDAYS[weekday])] = updatedtimecontrols[weekday]
+                mykostalsettings.KostalwriteableSettings = updatedtimecontrols
+                mykostalsettings.writevalues(mykostalsettings.KostalwriteableSettings)
+
+            if (str(args['SetBatteryTimeControlJson']) != 'None'):
+                mykostalsettings.KostalwriteableSettings = json.loads(args['SetBatteryTimeControlJson'][0])
                 mykostalsettings.writevalues(mykostalsettings.KostalwriteableSettings)
 
             if (str(args['ReadBatteryTimeControl']) != 'None'):
-                timecontrols=mykostalsettings.readtimecontrolsJson()
+                timecontrols=mykostalsettings.readTimeControlsAsMap()
                 print(json.dumps(timecontrols))
                 #print('['+', '.join('"{0}"'.format(w) for w in timecontrols)+']')
 
