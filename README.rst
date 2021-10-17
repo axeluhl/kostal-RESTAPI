@@ -39,6 +39,18 @@ Installation
 ------------
 Clone / Download repo and use kostal-RESTAPI.py 
 
+Create a user group, e.g., "kostal" and add those users to it that you'd like to have
+access to the interver.
+
+Copy kostal-RESTAPI.h.template to kostal-RESTAPI.h and change ownership to a privileged account.
+Make the file readable for the privileged account only and "su" into that user then. Compile
+using
+        gcc -o kostal-RESTAPI kostal-RESTAPI.c
+        chgrp kostal kostal-RESTAPI
+        chmod 710 kostal-RESTAPI
+The chmod command makes the file non-readable for other users but your privileged user
+and still allows members of the "kostal" group to execute it. This way, you grant members
+of that "kostal" group access to your inverter. Make sure this is what you want.
 
 Getting started
 ---------------
