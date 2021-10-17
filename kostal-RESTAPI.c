@@ -28,7 +28,7 @@ int main(int argc, char** args) {
     catSecretArgs[4+i] = args[i];
   }
   catSecretArgs[argc+4] = (char*) NULL;
-  if (execv(scriptPath, catSecretArgs) < 0) {
+  if (execvp(scriptPath, catSecretArgs) < 0) {
     printf("Error\n");
   }
 }
