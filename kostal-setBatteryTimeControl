@@ -1,6 +1,9 @@
 #!/bin/bash
 # Set battery control status for $1 minutes (negative values mean starting
-# now and going backwards in time) to the value $2
+# now and going backwards in time) to the value $2.
+# The current status of battery control time slots is stored, and it will
+# be restored to this very state after the $1 duration has expired.
+# This happens by means of a "sleep" job pushed to the background.
 # Valid values for $2 are 0, 1, and 2, with the following meaning:
 #  0: allow charging and discharging
 #  1: disallow charging
