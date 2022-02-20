@@ -25,7 +25,7 @@ class Interval:
         self.originalState = originalState
 
     def __str__(self):
-        return "Interval["+str(self.timepoint)+", blocked="+str(self.blocked)+", originalState="+str(self.originalState)
+        return "Interval["+str(self.timepoint)+", blocked="+str(self.blocked)+", originalState="+str(self.originalState)+"]"
 
     def getWeekdayNumber(self):
         return self.timepoint.weekday()
@@ -51,6 +51,10 @@ class Interval:
         """Returns the start time point of this interval"""
         return self.getStartOfDay() + INTERVAL * (self.getSlot() + 1)
 
+    def isExpired(self):
+        """Tells whether getEnd() is after the current point in time"""
+        return self.getEnd() < datetime.now(TZ)
+
     def getUpdatedTimeControls(self, durationFromNowInMinutes, value):
         existingTimeControls = self.readTimeControlsAsMap()
         localizedNow = datetime.now(TZ)
@@ -71,3 +75,14 @@ class Interval:
 
     def getBatteryTimeControlPropertyForDayNumber(self, dayNumberStartingWithZero):
         return self.getBatteryTimeControlPropertyForDay(WEEKDAYS[dayNumberStartingWithZero])
+
+class Json:
+  def toJson(self, interval):
+    map={ 'timepoint': int(interval.timepoint.timestamp()),
+          'blocked': 'true' if interval.blocked else 'false',
+          'originalState': interval.originalState }
+    return json.dumps(map)
+    
+  def fromJson(self, intervalJson):
+    map=json.loads(intervalJson)
+    return Interval(datetime.fromtimestamp(map['timepoint']), map['blocked'], map['originalState'])
