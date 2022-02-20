@@ -182,7 +182,7 @@ class Store:
        keep the persistent state in sync with the set of Interval objects held by this object.
        If an Interval object obtained through this object are modified without going
        through this object's methods, the persistent store will not be updated."""
-    FILE='/tmp/blocked-intervals.json'
+    FILE='/var/cache/kostal/blocked-intervals.json'
 
     def __init__(self):
         self.load()
