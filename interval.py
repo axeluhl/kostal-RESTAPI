@@ -12,13 +12,18 @@ from datetime import datetime
 from pytz import timezone
 from Cryptodome.Cipher import AES  #windows
 
-WEEKDAYS=['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+# The interval duration at which the inverter can control the battery;
+# for the Kostal Plenticore this is 15 minutes
 INTERVAL=timedelta(minutes=15)
+# The interval at which the wallbox power is polled
+WALLBOX_POLLING_INTERVAL=timedelta(minutes=1)
+# Pick your time zone:
 TZ=timezone('Europe/Berlin')
 # The name of the executable for reading and setting values in the Kostal inverter,
 # without the need to provide a password, requiring
 # the user executing this script to be member of the "kostal" group.
 KOSTAL_RESTAPI='kostal-RESTAPI'
+WEEKDAYS=['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 class Interval:
     def __init__(self, timepoint=datetime.now(TZ), blocked=None, originalState=None):
@@ -70,6 +75,10 @@ class Interval:
         """Tells if the end (see self.getEnd()) of this interval is less than duration
            (expecte to be of type datetime.timedelta) later than the current point in time"""
         return self.getEnd() < datetime.now(TZ) + duration
+
+    def contains(self, aTimePoint):
+        """Start is inclusive, end is exclusive"""
+        return self.getStart() <= aTimePoint and self.getEnd() > aTimePoint
 
     def readTimeControlsAsMap(self):
         """Uses the kostal-RESTAPI executable, expected to be in the PATH, to
@@ -132,7 +141,7 @@ class Interval:
     def updateBlockedFromInverter(self):
         self.blocked = self.getBatteryTimeControlPropertyValue() == 2
 
-    def reset(self):
+    def revert(self):
         self.setBatteryTimeControlPropertyValue(self.originalState)
         self.blocked = self.originalState == 2
 
@@ -151,7 +160,7 @@ class Json:
         return self.fromMap(map)
 
     def fromMap(self, map):
-        return Interval(datetime.fromtimestamp(map['timepoint']), map['blocked'], map['originalState'])
+        return Interval(TZ.localize(datetime.fromtimestamp(map['timepoint'])), map['blocked'], map['originalState'])
 
     def toJsonArray(self, intervals):
         intervalMaps=[]
@@ -165,3 +174,72 @@ class Json:
         for intervalMap in intervalMaps:
             intervals.append(self.fromMap(intervalMap))
         return intervals
+
+class Store:
+    """Maintains a set of Interval objects and keeps it in sync with a FILE store.
+       Intervals can be looked up and created
+       based on time points. Block and unblock operations for intervals are provided which will
+       keep the persistent state in sync with the set of Interval objects held by this object.
+       If an Interval object obtained through this object are modified without going
+       through this object's methods, the persistent store will not be updated."""
+    FILE='/tmp/blocked-intervals.json'
+
+    def __init__(self):
+        self.load()
+
+    def __str__(self):
+        return ",".join( map( str, self.intervals ) )
+
+    def load(self):
+        with open(Store.FILE, 'r') as infile:
+            self.intervals = Json().fromJsonArray(infile.read())
+
+    def store(self):
+        with open(Store.FILE, 'w') as outfile:
+            outfile.write(Json().toJsonArray(self.intervals))
+
+    def revertAndRemoveExpiredIntervals(self):
+        remainingIntervals = []
+        for interval in self.intervals:
+            if interval.isExpired():
+                interval.revert()
+            else:
+                remainingIntervals.append(interval)
+        self.intervals = remainingIntervals
+        self.store()
+
+    def getIntervalForTimePoint(self, timepoint):
+        for interval in self.intervals:
+            if interval.contains(timepoint):
+                return interval
+        return None
+
+    def getOrCreateIntervalForTimePoint(self, timepoint):
+        interval = self.getIntervalForTimePoint(timepoint)
+        if interval == None:
+            interval = Interval(timepoint)
+            self.intervals.append(interval)
+        return interval
+
+    def getOrCreateIntervalForNow(self):
+        return self.getOrCreateIntervalForTimePoint(datetime.now(TZ))
+
+    def block(self, interval):
+        interval.block()
+        self.store()
+
+    def blockCurrent(self):
+        """Obtains the interval for now and now+WALLBOX_POLLING_INTERVAL
+           and blocks both of them."""
+        now = datetime.now(TZ)
+        intervalForNow = self.getOrCreateIntervalForTimePoint(now)
+        self.block(intervalForNow)
+        intervalForNextPoll=self.getOrCreateIntervalForTimePoint(now+WALLBOX_POLLING_INTERVAL)
+        if intervalForNextPoll != intervalForNow:
+            self.block(intervalForNextPoll)
+
+    def revertAndRemoveAllIntervals(self):
+        for interval in self.intervals:
+            interval.revert()
+        self.intervals = []
+        self.store()
