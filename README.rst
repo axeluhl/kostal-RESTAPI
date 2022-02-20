@@ -54,6 +54,8 @@ of that "kostal" group access to your inverter. Make sure this is what you want.
 
 If you don't even like the idea of having the password appear in between the ``gcc`` call finishing and the ``chgrp`` and ``chmod`` commands running, do all of this in a directory readable only to the privileged user.
 
+The ``kostal-interval.py`` script will work with the ``/var/cache/kostal/blocked-intervals.json`` file as its persistent cache. The file must be writable by the user invoking the script. With the above you probably want to let the ``kostal`` user group own the file and its hosting directory ``/var/cache/kostsal`` and make both readable/writable for group members, so all users belonging to that group can read and update it.
+
 Getting started
 ---------------
 
