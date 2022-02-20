@@ -262,5 +262,5 @@ For the store of managed intervals see """+Store.FILE)
         if sys.argv[1] == "block":
             store.blockCurrent()
             store.revertAndRemoveExpiredIntervals()
-        elif sys.args[1] == "revert":
+        elif sys.argv[1] == "revert":
             store.revertAndRemoveAllIntervals()
