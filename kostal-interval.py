@@ -182,7 +182,7 @@ class Store:
        keep the persistent state in sync with the set of Interval objects held by this object.
        If an Interval object obtained through this object are modified without going
        through this object's methods, the persistent store will not be updated."""
-    FILE='/tmp/blocked-intervals.json'
+    FILE='/var/cache/kostal/blocked-intervals.json'
 
     def __init__(self):
         self.load()
@@ -191,8 +191,12 @@ class Store:
         return ",".join( map( str, self.intervals ) )
 
     def load(self):
-        with open(Store.FILE, 'r') as infile:
-            self.intervals = Json().fromJsonArray(infile.read())
+        try:
+            with open(Store.FILE, 'r') as infile:
+                self.intervals = Json().fromJsonArray(infile.read())
+        except IOError:
+            print("File "+str(Store.FILE)+" not readable. Starting with empty store.")
+            self.intervals = []
 
     def store(self):
         with open(Store.FILE, 'w') as outfile:
@@ -233,9 +237,10 @@ class Store:
            and blocks both of them."""
         now = datetime.now(TZ)
         intervalForNow = self.getOrCreateIntervalForTimePoint(now)
-        self.block(intervalForNow)
+        if not intervalForNow.blocked:
+            self.block(intervalForNow)
         intervalForNextPoll=self.getOrCreateIntervalForTimePoint(now+WALLBOX_POLLING_INTERVAL)
-        if intervalForNextPoll != intervalForNow:
+        if intervalForNextPoll != intervalForNow and not intervalForNextPoll.blocked:
             self.block(intervalForNextPoll)
 
     def revertAndRemoveAllIntervals(self):

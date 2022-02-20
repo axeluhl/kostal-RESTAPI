@@ -40,7 +40,7 @@ Installation
 Clone / Download repo and use kostal-RESTAPI.py. If you'd like to have a more convenient yet secure way that doesn't require you to enter your password for each invocation without having to place the password in a file readable to the users whom you'd like to grant permission to control your inverter, read on.
 
 Create a user group, e.g., "kostal" and add those users to it that you'd like to have
-access to the interver.
+access to the inverter.
 
 Copy kostal-RESTAPI.h.template to kostal-RESTAPI.h and change ownership to a privileged account.
 Make the file readable for the privileged account only and "su" into that user then. Compile
@@ -85,6 +85,11 @@ There are a few convenience scripts:
  - kostal-setBatteryTimeControl: invokes ``./kostal-RESTAPI -SetBatteryTimeControl $1 $2`` and waits for $1 minutes, then resets the battery time control settings to their values at the time of invoking this script
  - kostal-noDischarge: short for ``kostal-setBatteryTimeControl $1 2``
  - kostal-setBatteryTimeControlForAll: shorthand for ``./kostal-RESTAPI -SetBatteryTimeControl 10080 $1`` which sets all values for the entire week to $1
+ - kostal-interver.py: knows the two sub-commands "block" and "revert" and blocks or reverts, respectively, discharging the home battery
+   for the current (and the next, if less than the polling interval of 1min) interval, recording those interval's original state if
+   blocking them for the first time; "block" will also revert all intervals that have expired by now;
+   revert will revert those intervals recorded to their original state. Recorded intervals are
+   stored under /var/cache/kostal/blocked-intervals.json.
 
 Further reading:
 ----------------
