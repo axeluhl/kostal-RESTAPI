@@ -243,3 +243,24 @@ class Store:
             interval.revert()
         self.intervals = []
         self.store()
+
+if __name__ == "__main__":
+    if len(sys.argv) <= 1:
+        print("Usage: "+sys.argv[0]+""" [ block | revert ]
+
+If the sub-command 'block' is chosen, the current interval, and if it expires in less
+than the polling interval """+str(WALLBOX_POLLING_INTERVAL)+""", also the next interval will be blocked; furthermore,
+all intervals already expired will be reverted to their original state and will
+be removed from the set of known intervals.
+
+If the sub-command 'revert' is chosen, all intervals on record will be reverted to
+their original state and will be removed from the set of known intervals.
+
+For the store of managed intervals see """+Store.FILE)
+    else:
+        store=Store()
+        if sys.argv[1] == "block":
+            store.blockCurrent()
+            store.revertAndRemoveExpiredIntervals()
+        elif sys.args[1] == "revert":
+            store.revertAndRemoveAllIntervals()
