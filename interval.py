@@ -16,19 +16,16 @@ INTERVAL=timedelta(minutes=15)
 TZ=timezone('Europe/Berlin')
 
 class Interval:
-    def __init__(self):
-        """Construct an interval for the current time"""
-        self(datetime.now(TZ)
-
-    def __init__(self, timepoint):
-        """Construct an interval for the timepoint specified, unblocked"""
-        self.__init__(self, timepoint, blocked=false, originalState=null)
-
-    def __init__(self, timepoint, blocked, originalState):
-        """Construct an interval for the timepoint, blockedness and original state specified"""
+    def __init__(self, timepoint=datetime.now(TZ), blocked=False, originalState=None):
+        """Construct an interval for the timepoint, blockedness and original state specified;
+           The originalState can be 0, 1, 2, or null if not known.
+           self.blocked is a boolean value."""
         self.timepoint = timepoint
         self.blocked = blocked
         self.originalState = originalState
+
+    def __str__(self):
+        return "Interval["+str(self.timepoint)+", blocked="+str(self.blocked)+", originalState="+str(self.originalState)
 
     def getWeekdayNumber(self):
         return self.timepoint.weekday()
@@ -36,11 +33,23 @@ class Interval:
     def getWeekdayPropertyName(self):
         return self.getBatteryTimeControlPropertyForDayNumber(self.getWeekdayNumber())
 
+    def getStartOfDay(self):
+        return datetime(self.timepoint.year, self.timepoint.month, self.timepoint.day, tzinfo=self.timepoint.tzinfo)
+
+    def getDurationSinceStartOfDay(self):
+        return self.timepoint - self.getStartOfDay()
+
     def getSlot(self):
         """Returns the 0-based index into the digits string for this interval's day of week"""
-        startOfDay = datetime(self.timepoint.year, self.timepoint.month, self.timepoint.day, tzinfo=self.timepoint.tzinfo)
-        durationSinceStartOfDay = self.timepoint - startOfDay
-        return durationSinceStartOfDay // INTERVAL
+        return self.getDurationSinceStartOfDay() // INTERVAL
+
+    def getStart(self):
+        """Returns the start time point of this interval"""
+        return self.getStartOfDay() + INTERVAL * self.getSlot()
+
+    def getEnd(self):
+        """Returns the start time point of this interval"""
+        return self.getStartOfDay() + INTERVAL * (self.getSlot() + 1)
 
     def getUpdatedTimeControls(self, durationFromNowInMinutes, value):
         existingTimeControls = self.readTimeControlsAsMap()
@@ -62,6 +71,3 @@ class Interval:
 
     def getBatteryTimeControlPropertyForDayNumber(self, dayNumberStartingWithZero):
         return self.getBatteryTimeControlPropertyForDay(WEEKDAYS[dayNumberStartingWithZero])
-
-if __name__ == "__main__":
-
