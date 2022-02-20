@@ -191,8 +191,12 @@ class Store:
         return ",".join( map( str, self.intervals ) )
 
     def load(self):
-        with open(Store.FILE, 'r') as infile:
-            self.intervals = Json().fromJsonArray(infile.read())
+        try:
+            with open(Store.FILE, 'r') as infile:
+                self.intervals = Json().fromJsonArray(infile.read())
+        except IOError:
+            print("File "+str(Store.FILE)+" not readable. Starting with empty store.")
+            self.intervals = []
 
     def store(self):
         with open(Store.FILE, 'w') as outfile:
