@@ -66,6 +66,11 @@ class Interval:
         """Tells whether getEnd() is after the current point in time"""
         return self.getEnd() < datetime.now(TZ)
 
+    def isAboutToExpireIn(self, duration):
+        """Tells if the end (see self.getEnd()) of this interval is less than duration
+           (expecte to be of type datetime.timedelta) later than the current point in time"""
+        return self.getEnd() < datetime.now(TZ) + duration
+
     def readTimeControlsAsMap(self):
         """Uses the kostal-RESTAPI executable, expected to be in the PATH, to
            obtain the current battery time controls as a map, with the property
@@ -132,12 +137,31 @@ class Interval:
         self.blocked = self.originalState == 2
 
 class Json:
-  def toJson(self, interval):
-    map={ 'timepoint': int(interval.timepoint.timestamp()),
-          'blocked': 'true' if interval.blocked else 'false',
-          'originalState': interval.originalState }
-    return json.dumps(map)
-    
-  def fromJson(self, intervalJson):
-    map=json.loads(intervalJson)
-    return Interval(datetime.fromtimestamp(map['timepoint']), map['blocked'], map['originalState'])
+    def toMap(self, interval):
+        return { 'timepoint': int(interval.timepoint.timestamp()),
+                 'blocked': 'true' if interval.blocked else 'false',
+                 'originalState': interval.originalState }
+
+    def toJson(self, interval):
+        map=self.toMap(interval)
+        return json.dumps(map)
+
+    def fromJson(self, intervalJson):
+        map=json.loads(intervalJson)
+        return self.fromMap(map)
+
+    def fromMap(self, map):
+        return Interval(datetime.fromtimestamp(map['timepoint']), map['blocked'], map['originalState'])
+
+    def toJsonArray(self, intervals):
+        intervalMaps=[]
+        for interval in intervals:
+            intervalMaps.append(self.toMap(interval))
+        return json.dumps(intervalMaps)
+
+    def fromJsonArray(self, intervalsJson):
+        intervalMaps=json.loads(intervalsJson)
+        intervals=[]
+        for intervalMap in intervalMaps:
+            intervals.append(self.fromMap(intervalMap))
+        return intervals
