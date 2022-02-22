@@ -68,25 +68,17 @@ class Interval:
         return self.getStartOfDay() + INTERVAL * (self.getSlot() + 1)
 
     def isExpired(self):
-        """Tells whether getEnd() is after the current point in time"""
-        return self.getEnd() < datetime.now(TZ)
+        """Tells whether the current point in time is at or after the interval's end"""
+        return self.getEnd() <= datetime.now(TZ)
 
     def isAboutToExpireIn(self, duration):
         """Tells if the end (see self.getEnd()) of this interval is less than duration
-           (expecte to be of type datetime.timedelta) later than the current point in time"""
-        return self.getEnd() < datetime.now(TZ) + duration
+           (expected to be of type datetime.timedelta) later than the current point in time"""
+        return self.getEnd() <= datetime.now(TZ) + duration
 
     def contains(self, aTimePoint):
         """Start is inclusive, end is exclusive"""
         return self.getStart() <= aTimePoint and self.getEnd() > aTimePoint
-
-    def readTimeControlsAsMap(self):
-        """Uses the kostal-RESTAPI executable, expected to be in the PATH, to
-           obtain the current battery time controls as a map, with the property
-           names as returned by getBatteryTimeControlPropertyForDay as the keys
-           and strings with digits 0, 1, or 2 for each INTERVAL during that day"""
-        return json.loads(subprocess.check_output(['kostal-RESTAPI', '-ReadBatteryTimeControl', '1'])
-                   .decode(sys.stdout.encoding))
 
     def getBatteryTimeControlPropertyName(self):
         """Obtains the property name for the battery time control map for the day of self.timepoint"""
@@ -116,6 +108,10 @@ class Interval:
         return batteryTimeControlValuesAsMap
 
     def getBatteryTimeControlMapFromInverter(self):
+        """Uses the kostal-RESTAPI executable, expected to be in the PATH, to
+           obtain the current battery time controls as a map, with the property
+           names as returned by getBatteryTimeControlPropertyForDay as the keys
+           and strings with digits 0, 1, or 2 for each INTERVAL during that day"""
         return json.loads(subprocess.check_output([KOSTAL_RESTAPI, '-ReadBatteryTimeControl', '1']).decode(sys.stdout.encoding))
 
     def getBatteryTimeControlPropertyValue(self):
@@ -126,9 +122,9 @@ class Interval:
     def setBatteryTimeControlPropertyValue(self, newValue):
         """For this interval updates the digit in the weekday digit string for self.timepoint
            to the newValue in the inverter"""
-        return json.loads(subprocess.check_output([KOSTAL_RESTAPI, '-SetBatteryTimeControlJson',
+        subprocess.check_output([KOSTAL_RESTAPI, '-SetBatteryTimeControlJson',
                    json.dumps(self.getUpdatedTimeControls(
-                       self.getBatteryTimeControlMapFromInverter(), newValue))]).decode(sys.stdout.encoding))
+                       self.getBatteryTimeControlMapFromInverter(), newValue))]).decode(sys.stdout.encoding)
 
     def unblock(self):
         self.setBatteryTimeControlPropertyValue(0)
