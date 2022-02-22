@@ -233,13 +233,13 @@ class Store:
         self.store()
 
     def blockCurrent(self):
-        """Obtains the interval for now and now+WALLBOX_POLLING_INTERVAL
+        """Obtains the interval for now and now+2*WALLBOX_POLLING_INTERVAL
            and blocks both of them."""
         now = datetime.now(TZ)
         intervalForNow = self.getOrCreateIntervalForTimePoint(now)
         if not intervalForNow.blocked:
             self.block(intervalForNow)
-        intervalForNextPoll=self.getOrCreateIntervalForTimePoint(now+WALLBOX_POLLING_INTERVAL)
+        intervalForNextPoll=self.getOrCreateIntervalForTimePoint(now+2*WALLBOX_POLLING_INTERVAL)
         if intervalForNextPoll != intervalForNow and not intervalForNextPoll.blocked:
             self.block(intervalForNextPoll)
 
