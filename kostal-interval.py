@@ -41,7 +41,7 @@ class Interval:
             self.blocked = blocked
 
     def __str__(self):
-        return "Interval["+str(self.timepoint)+", blocked="+str(self.blocked)+", originalState="+str(self.originalState)+"]"
+        return "Interval["+str(self.timepoint)+", start="+str(self.getStart())+", end="+str(self.getEnd())+", blocked="+str(self.blocked)+", originalState="+str(self.originalState)+"]"
 
     def getWeekdayNumber(self):
         return self.timepoint.weekday()
@@ -127,10 +127,12 @@ class Interval:
                        self.getBatteryTimeControlMapFromInverter(), newValue))]).decode(sys.stdout.encoding)
 
     def unblock(self):
+        print("Unblocking "+str(self))
         self.setBatteryTimeControlPropertyValue(0)
         self.blocked = False
 
     def block(self):
+        print("Blocking "+str(self))
         self.setBatteryTimeControlPropertyValue(2)
         self.blocked = True
 
@@ -138,6 +140,7 @@ class Interval:
         self.blocked = self.getBatteryTimeControlPropertyValue() == 2
 
     def revert(self):
+        print("Reverting "+str(self))
         self.setBatteryTimeControlPropertyValue(self.originalState)
         self.blocked = self.originalState == 2
 
@@ -202,6 +205,7 @@ class Store:
         remainingIntervals = []
         for interval in self.intervals:
             if interval.isExpired():
+                print(""+str(interval)+" has expired; reverting.")
                 interval.revert()
             else:
                 remainingIntervals.append(interval)
@@ -218,11 +222,9 @@ class Store:
         interval = self.getIntervalForTimePoint(timepoint)
         if interval == None:
             interval = Interval(timepoint)
+            print("Didn't find interval for "+str(timepoint)+" in store. Created "+str(interval))
             self.intervals.append(interval)
         return interval
-
-    def getOrCreateIntervalForNow(self):
-        return self.getOrCreateIntervalForTimePoint(datetime.now(TZ))
 
     def block(self, interval):
         interval.block()
@@ -260,8 +262,11 @@ their original state and will be removed from the set of known intervals.
 For the store of managed intervals see """+Store.FILE)
     else:
         store=Store()
+        print("Interval Store: "+str(store))
         if sys.argv[1] == "block":
+            print("Blocking current and perhaps next interval")
             store.blockCurrent()
             store.revertAndRemoveExpiredIntervals()
         elif sys.argv[1] == "revert":
+            print("Reverting all intervals")
             store.revertAndRemoveAllIntervals()
