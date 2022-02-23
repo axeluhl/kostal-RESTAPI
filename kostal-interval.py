@@ -68,13 +68,8 @@ class Interval:
         return self.getStartOfDay() + INTERVAL * (self.getSlot() + 1)
 
     def isExpired(self):
-        """Tells whether the current point in time is at or after the interval's end"""
-        return self.getEnd() <= datetime.now(TZ)
-
-    def isAboutToExpireIn(self, duration):
-        """Tells if the end (see self.getEnd()) of this interval is less than duration
-           (expected to be of type datetime.timedelta) later than the current point in time"""
-        return self.getEnd() <= datetime.now(TZ) + duration
+        """Tells whether the current point in time is at or after the interval's end plus the polling interval"""
+        return self.getEnd() + WALLBOX_POLLING_INTERVAL <= datetime.now(TZ)
 
     def contains(self, aTimePoint):
         """Start is inclusive, end is exclusive"""
