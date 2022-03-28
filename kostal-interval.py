@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+import os
 import string
 import subprocess
 import json
@@ -185,12 +186,16 @@ class Store:
         return ",".join( map( str, self.intervals ) )
 
     def load(self):
-        try:
-            with open(Store.FILE, 'r') as infile:
-                self.intervals = Json().fromJsonArray(infile.read())
-        except IOError:
-            print("File "+str(Store.FILE)+" not readable. Starting with empty store.")
-            self.intervals = []
+        if not os.path.exists(Store.FILE) or os.path.getsize(Store.FILE) == 0:
+          print("File "+str(Store.FILE)+" empty. Starting with empty store.")
+          self.intervals = []
+        else:
+          try:
+              with open(Store.FILE, 'r') as infile:
+                  self.intervals = Json().fromJsonArray(infile.read())
+          except IOError:
+              print("File "+str(Store.FILE)+" not readable. Starting with empty store.")
+              self.intervals = []
 
     def store(self):
         with open(Store.FILE, 'w') as outfile:
