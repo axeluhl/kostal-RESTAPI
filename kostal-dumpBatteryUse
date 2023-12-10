@@ -1,0 +1,8 @@
+#!/bin/bash
+INFLUX_HOST=klo.axeluhl.de
+DB=kostal
+MEASUREMENT=pv
+influx -host ${INFLUX_HOST} \
+       -database ${DB} \
+       -precision s \
+       -execute 'select "Total active power (powermeter)", "Battery actual SOC", "Battery Charge" from '${MEASUREMENT}' where time > now()-100s'
