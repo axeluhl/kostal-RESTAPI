@@ -1,6 +1,7 @@
 package de.axeluhl.kostal;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -36,7 +37,7 @@ public class AggregateBatteryDischarge {
         private final double batteryChargeInWatts;
 
         static Reading parse(String line) {
-            final String[] fields = line.split(" +");
+            final String[] fields = line.split("[ \t]+");
             return new Reading(Instant.ofEpochMilli(Long.valueOf(fields[0]) / 1000000l), // convert from nanos to millis
                     Double.valueOf(fields[1]), Double.valueOf(fields[2]), Double.valueOf(fields[3]),
                     Integer.valueOf(fields[4]), Double.valueOf(fields[4]));
@@ -85,11 +86,13 @@ public class AggregateBatteryDischarge {
         }
     }
 
-    public void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException {
         final Battery virtualBattery = new Battery(/* minSOCPercent */ 5, /* maxChargePowerInWatts */ 5600,
                 /* reducedChargePowerInWatts */ 3000, /* socPercentWhereReducedChargePowerStarts */ 99.5,
-                /* capacityInWattHours */ 10600, /* energyContaied */ 0, Tariff::getCents);
-        new AggregateBatteryDischarge().aggregateBatteryDischarge(virtualBattery, new InputStreamReader(System.in));
+                /* capacityInWattHours */ 10600, /* energyContaied */ 0, SavingsPerDischarge.FUNCTION);
+        new AggregateBatteryDischarge().aggregateBatteryDischarge(virtualBattery,
+                args.length == 0 ? new InputStreamReader(System.in) : new FileReader(args[0]));
+        System.out.println(String.format("Aggregated discharge savings in EUR: %1.2f", virtualBattery.getSavingsInCents()/100.0));
     }
 
     public Battery aggregateBatteryDischarge(Battery virtualBattery, Reader in) throws IOException {
@@ -99,18 +102,20 @@ public class AggregateBatteryDischarge {
         double lastPowerAvailableForChargingInWatts = 0.0;
         String line;
         while ((line = reader.readLine()) != null) {
-            final Reading reading = Reading.parse(line);
-            if (!virtualBatterySOCInitialized) {
-                virtualBattery.setSOCPercent(reading.getBatterySOC());
-                virtualBatterySOCInitialized = true;
+            if (!line.trim().isEmpty()) {
+                final Reading reading = Reading.parse(line);
+                if (!virtualBatterySOCInitialized) {
+                    virtualBattery.setSOCPercent(reading.getBatterySOC());
+                    virtualBatterySOCInitialized = true;
+                }
+                if (lastTimestamp != null) {
+                    virtualBattery.charge(lastPowerAvailableForChargingInWatts, lastTimestamp,
+                            Duration.between(lastTimestamp, reading.getTime()));
+                }
+                lastTimestamp = reading.getTime();
+                lastPowerAvailableForChargingInWatts = reading.getPvProductionInWatts()
+                        - reading.getHomeOwnConsumptionInWatts();
             }
-            if (lastTimestamp != null) {
-                virtualBattery.charge(lastPowerAvailableForChargingInWatts, lastTimestamp,
-                        Duration.between(lastTimestamp, reading.getTime()));
-            }
-            lastTimestamp = reading.getTime();
-            lastPowerAvailableForChargingInWatts = reading.getPvProductionInWatts()
-                    - reading.getHomeOwnConsumptionInWatts();
         }
         return virtualBattery;
     }

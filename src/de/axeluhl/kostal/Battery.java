@@ -107,7 +107,7 @@ public class Battery {
         if (powerInWatts < 0) {
             // don't discharge below min SOC
             effectiveEnergyToAddInWattHours = -Math.min(-energyToAddAfterCappingInWattHours, energyContainedInWattHours-minEnergyContainedInWattHours);
-            savingsInCents += savingsFunctionInCentsPerWattHourDischarged.apply(when, effectiveEnergyToAddInWattHours);
+            savingsInCents += savingsFunctionInCentsPerWattHourDischarged.apply(when, -effectiveEnergyToAddInWattHours);
         } else {
             // don't charge beyond capacity
             effectiveEnergyToAddInWattHours = Math.min(energyToAddAfterCappingInWattHours, capacityInWattHours-energyContainedInWattHours);
