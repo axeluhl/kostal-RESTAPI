@@ -29,11 +29,11 @@ public class AggregateBatteryDischarge {
 
         private final double pvProductionInWatts;
 
-        private final double totalActivePowerInKW;
+        private final double totalActivePowerInWatts;
 
         private final int batterySOC;
 
-        private final double batteryChargeInKW;
+        private final double batteryChargeInWatts;
 
         static Reading parse(String line) {
             final String[] fields = line.split(" +");
@@ -42,15 +42,15 @@ public class AggregateBatteryDischarge {
                     Integer.valueOf(fields[4]), Double.valueOf(fields[4]));
         }
 
-        Reading(Instant time, double homeOwnConsumptionInWatts, double pvProductionInWatts, double totalActivePowerInKW,
-                int batterySOC, double batteryChargeInKW) {
+        Reading(Instant time, double homeOwnConsumptionInWatts, double pvProductionInWatts, double totalActivePowerInWatts,
+                int batterySOC, double batteryChargeInWatts) {
             super();
             this.time = time;
             this.homeOwnConsumptionInWatts = homeOwnConsumptionInWatts;
             this.pvProductionInWatts = pvProductionInWatts;
-            this.totalActivePowerInKW = totalActivePowerInKW;
+            this.totalActivePowerInWatts = totalActivePowerInWatts;
             this.batterySOC = batterySOC;
-            this.batteryChargeInKW = batteryChargeInKW;
+            this.batteryChargeInWatts = batteryChargeInWatts;
         }
 
         public Instant getTime() {
@@ -65,44 +65,30 @@ public class AggregateBatteryDischarge {
             return pvProductionInWatts;
         }
 
-        public double getTotalActivePowerInKW() {
-            return totalActivePowerInKW;
+        public double getTotalActivePowerInWatts() {
+            return totalActivePowerInWatts;
         }
 
         public int getBatterySOC() {
             return batterySOC;
         }
 
-        public double getBatteryChargeInKW() {
-            return batteryChargeInKW;
+        public double getBatteryChargeInWatts() {
+            return batteryChargeInWatts;
         }
 
         @Override
         public String toString() {
             return "Reading [time=" + time + ", homeOwnConsumptionInWatts=" + homeOwnConsumptionInWatts
-                    + ", pvProductionInWatts=" + pvProductionInWatts + ", totalActivePowerInKW=" + totalActivePowerInKW
-                    + ", batterySOC=" + batterySOC + ", batteryChargeInKW=" + batteryChargeInKW + "]";
-        }
-    }
-
-    private static class ReadingWithAggregates extends Reading {
-        private final int virtualBatterySOC;
-
-        public ReadingWithAggregates(Instant time, double homeOwnConsumptionInWatts, double pvProductionInWatts,
-                double totalActivePowerInKW, int batterySOC, double batteryChargeInKW, int virtualBatterySOC) {
-            super(time, homeOwnConsumptionInWatts, pvProductionInWatts, totalActivePowerInKW, batterySOC,
-                    batteryChargeInKW);
-            this.virtualBatterySOC = virtualBatterySOC;
-        }
-
-        public int getVirtualBatterySOC() {
-            return virtualBatterySOC;
+                    + ", pvProductionInWatts=" + pvProductionInWatts + ", totalActivePowerInWatts=" + getTotalActivePowerInWatts()
+                    + ", batterySOC=" + batterySOC + ", batteryChargeInWatts=" + getBatteryChargeInWatts() + "]";
         }
     }
 
     public void main(String[] args) throws IOException {
         final Battery virtualBattery = new Battery(/* minSOCPercent */ 5, /* maxChargePowerInWatts */ 5600,
-                /* capacityInWattHours */ 10600, /* energyContaied */ 0);
+                /* reducedChargePowerInWatts */ 3000, /* socPercentWhereReducedChargePowerStarts */ 99.5,
+                /* capacityInWattHours */ 10600, /* energyContaied */ 0, Tariff::getCents);
         new AggregateBatteryDischarge().aggregateBatteryDischarge(virtualBattery, new InputStreamReader(System.in));
     }
 
@@ -119,7 +105,7 @@ public class AggregateBatteryDischarge {
                 virtualBatterySOCInitialized = true;
             }
             if (lastTimestamp != null) {
-                virtualBattery.charge(lastPowerAvailableForChargingInWatts,
+                virtualBattery.charge(lastPowerAvailableForChargingInWatts, lastTimestamp,
                         Duration.between(lastTimestamp, reading.getTime()));
             }
             lastTimestamp = reading.getTime();

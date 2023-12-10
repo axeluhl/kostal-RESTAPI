@@ -24,6 +24,15 @@ public enum Tariff {
     public double getCentsPerKWh() {
         return centsPerKWh;
     }
+    
+    public static double getCents(Instant when, double energyInWattHours) {
+        for (final Tariff tariff : Tariff.values()) {
+            if (!tariff.getStartsAt().isAfter(when)) {
+                return energyInWattHours / 1000.0 * tariff.getCentsPerKWh();
+            }
+        }
+        throw new InternalError("Couldn't find tariff for time point "+when);
+    }
 
     private final Instant startsAt;
 
