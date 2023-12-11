@@ -15,7 +15,7 @@ import de.axeluhl.kostal.Battery;
 import de.axeluhl.kostal.SavingsPerDischarge;
 import de.axeluhl.kostal.Tariff;
 
-public class TestAggregateBatteryDischarge {
+public class AggregateBatteryDischargeTest {
     @Test
     public void testBasicAggregation() throws IOException {
         final AggregateBatteryDischarge a = new AggregateBatteryDischarge();

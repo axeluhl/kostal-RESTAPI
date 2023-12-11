@@ -1,3 +1,6 @@
 /kostal-RESTAPI
 /kostal-RESTAPI.h
 /bin/
+/target/
+/__pycache__/
+/.pydevproject
