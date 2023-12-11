@@ -2,7 +2,13 @@
 INFLUX_HOST=klo.axeluhl.de
 DB=kostal
 MEASUREMENT=pv
-influx -host ${INFLUX_HOST} \
+NUMBER_OF_DAYS_TO_STREAM=3650
+for i in `seq 0 ${NUMBER_OF_DAYS_TO_STREAM}`; do
+  START=$(( (NUMBER_OF_DAYS_TO_STREAM - i) * 24 ))
+  END=$(( (NUMBER_OF_DAYS_TO_STREAM - i - 1) * 24 ))
+  echo "START: $START; END: $END" >&2
+  influx -host ${INFLUX_HOST} \
        -database ${DB} \
-       -execute 'select "Home own consumption", "PV production", "Total active power (powermeter)", "Battery actual SOC", "Battery Charge" from '${MEASUREMENT}' where time > now()-365d' \
+       -execute 'select "Home own consumption", "PV production", "Total active power (powermeter)", "Battery actual SOC", "Battery Charge" from '${MEASUREMENT}' where time >= now()-'${START}'h and time < now()-'${END}'h' \
   | tail -n +4
+done
