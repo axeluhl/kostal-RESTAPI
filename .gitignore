@@ -4,3 +4,5 @@
 /target/
 /__pycache__/
 /.pydevproject
+/kostal-dumpCarChargeBehavior-ebox.out
+/kostal-dumpCarChargeBehavior-pv.out

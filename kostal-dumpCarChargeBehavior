@@ -2,13 +2,22 @@
 INFLUX_HOST=klo.axeluhl.de
 DB=kostal
 NUMBER_OF_DAYS_TO_STREAM=3650
+PV_OUT=$( basename "${0}" )-pv.out
+EBOX_OUT=$( basename "${0}" )-ebox.out
+rm "${PV_OUT}"
+rm "${EBOX_OUT}"
+echo "Writing output to ${PV_OUT} and ${EBOX_OUT}" >&2
 for i in `seq 0 ${NUMBER_OF_DAYS_TO_STREAM}`; do
   START=$(( (NUMBER_OF_DAYS_TO_STREAM - i) * 24 ))
   END=$(( (NUMBER_OF_DAYS_TO_STREAM - i - 1) * 24 ))
   echo "START: $START; END: $END" >&2
   influx -host ${INFLUX_HOST} \
        -database ${DB} \
-       -execute 'select "Home own consumption", "PV production", "Total active power (powermeter)", "Battery actual SOC", "Battery Charge", "CurrentPhase1", "CurrentPhase2", "CurrentPhase3", "Socket1CableState", "Socket1Mode3State" from pv, ebox where time >= now()-2m' \
-  | tail -n +4
-       # -execute 'select "Home own consumption", "PV production", "Total active power (powermeter)", "Battery actual SOC", "Battery Charge", "CurrentPhase1", "CurrentPhase2", "CurrentPhase3", "Socket1CableState", "Socket1Mode3State" from pv, ebox where time >= now()-'${START}'h and time < now()-'${END}'h' \
+       -execute 'select "Home own consumption", "PV production", "Total active power (powermeter)", "Battery actual SOC", "Battery Charge" from pv where time >= now()-'${START}'h and time < now()-'${END}'h' \
+  | tail -n +4 >>"${PV_OUT}"
+  influx -host ${INFLUX_HOST} \
+       -database ${DB} \
+       -execute 'select "CurrentPhase1", "CurrentPhase2", "CurrentPhase3", "MaxCurrentPhase1", "MaxCurrentPhase2", "MaxCurrentPhase3", "Socket1CableState", "Socket1Mode3State" from ebox where time >= now()-'${START}'h and time < now()-'${END}'h' \
+  | tail -n +4 >>"${EBOX_OUT}"
+       # -execute 'select "Home own consumption", "PV production", "Total active power (powermeter)", "Battery actual SOC", "Battery Charge", "CurrentPhase1", "CurrentPhase2", "CurrentPhase3", "Socket1CableState", "Socket1Mode3State" from pv, ebox where time >= now()-2m' \
 done
