@@ -12,6 +12,12 @@ class WallboxReading {
 
     private final double currentPhase3InAmperes;
     
+    private final double maxCurrentPhase1InAmperes;
+
+    private final double maxCurrentPhase2InAmperes;
+
+    private final double maxCurrentPhase3InAmperes;
+    
     /**
      * Cable State (0=no cable; 1=cable w/o car; 2=unlocked cable w/o car; 3=locked cable w/ car)
      */
@@ -83,16 +89,21 @@ class WallboxReading {
         final String[] fields = line.split("[ \t]+");
         return new WallboxReading(Instant.ofEpochMilli(Long.valueOf(fields[0]) / 1000000l), // convert from nanos to millis
                 Double.valueOf(fields[1]), Double.valueOf(fields[2]), Double.valueOf(fields[3]),
-                CableState.ofCode(Integer.valueOf(fields[4])), Mode3State.ofName(fields[4]));
+                Double.valueOf(fields[4]), Double.valueOf(fields[5]), Double.valueOf(fields[6]),
+                CableState.ofCode(Integer.valueOf(fields[7])), Mode3State.ofName(fields[8]));
     }
 
     public WallboxReading(Instant time, double currentPhase1InAmperes, double currentPhase2InAmperes,
-            double currentPhase3InAmperes, CableState socket1CableState, Mode3State socket1Mode3State) {
+            double currentPhase3InAmperes, double maxCurrentPhase1InAmperes, double maxCurrentPhase2InAmperes,
+            double maxCurrentPhase3InAmperes, CableState socket1CableState, Mode3State socket1Mode3State) {
         super();
         this.time = time;
         this.currentPhase1InAmperes = currentPhase1InAmperes;
         this.currentPhase2InAmperes = currentPhase2InAmperes;
         this.currentPhase3InAmperes = currentPhase3InAmperes;
+        this.maxCurrentPhase1InAmperes = maxCurrentPhase1InAmperes;
+        this.maxCurrentPhase2InAmperes = maxCurrentPhase2InAmperes;
+        this.maxCurrentPhase3InAmperes = maxCurrentPhase3InAmperes;
         this.socket1CableState = socket1CableState;
         this.socket1Mode3State = socket1Mode3State;
     }
@@ -113,11 +124,23 @@ class WallboxReading {
         return currentPhase3InAmperes;
     }
 
-    public CableState getSocket1CableState() {
-        return socket1CableState;
-    }
+    public double getMaxCurrentPhase1InAmperes() {
+		return maxCurrentPhase1InAmperes;
+	}
 
-    public Mode3State getSocket1Mode3State() {
+	public double getMaxCurrentPhase2InAmperes() {
+		return maxCurrentPhase2InAmperes;
+	}
+
+	public double getMaxCurrentPhase3InAmperes() {
+		return maxCurrentPhase3InAmperes;
+	}
+
+	public CableState getSocket1CableState() {
+		return socket1CableState;
+	}
+	
+	public Mode3State getSocket1Mode3State() {
         return socket1Mode3State;
     }
 

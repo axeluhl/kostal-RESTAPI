@@ -142,12 +142,24 @@ public class AggregateCarCharge {
         boolean virtualBatterySOCInitialized = false;
         Instant lastTimestamp = null;
         double lastPowerAvailableForChargingInWatts = 0.0;
-        String line;
-        // TODO read lines from the two readers in the form of a "merge sort" based on their time stamps;
-        // TODO wallbox states are assumed to stay unchanged up to the next reading
-        while ((line = readerPv.readLine()) != null) {
-            if (!line.trim().isEmpty()) {
-                final BatteryUseReading reading = BatteryUseReading.parse(line);
+        String linePv = readerPv.readLine();
+        String nextLinePv = readerPv.readLine();
+        BatteryUseReading readingPv = BatteryUseReading.parse(linePv);
+        String lineEbox = readerEbox.readLine();
+        String nextLineEbox = readerEbox.readLine();
+        WallboxReading readingEbox = WallboxReading.parse(lineEbox);
+        WallboxReading nextReadingEbox = WallboxReading.parse(nextLineEbox);
+        // skip PV readings until we reach the first eBox reading:
+        while (readingPv != null && readingPv.getTime().isBefore(readingEbox.getTime())) {
+        	linePv = nextLinePv;
+        	nextLinePv = readerPv.readLine();
+        	readingPv = BatteryUseReading.parse(linePv);
+        }
+        // now readingPv is at or after readingEbox; read until PV reading's time point is at or after nextReadingEbox
+        while (nextReadingEbox != null && readingPv != null) {
+        	virtualCar.update(readingPv, readingEbox);
+            if (!linePv.trim().isEmpty()) {
+                final BatteryUseReading reading = BatteryUseReading.parse(linePv);
                 if (!virtualBatterySOCInitialized) {
 //                    virtualBattery.setSOCPercent(reading.getBatterySOC());
 //                    virtualBatterySOCInitialized = true;
