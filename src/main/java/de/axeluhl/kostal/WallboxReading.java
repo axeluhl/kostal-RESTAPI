@@ -26,6 +26,10 @@ class WallboxReading {
         CABLE_WITHOUT_CAR(1),
         UNLOCKED_CABLE_WITHOUT_CAR(2),
         LOCKED_CABLE_WITH_CAR(3);
+
+    	private static CableState[] statesByCode;
+    	
+    	private final int code;
         
         static CableState ofCode(int code) {
             return statesByCode[code];
@@ -37,15 +41,15 @@ class WallboxReading {
         }
         
         private void cache(CableState cableState) {
+        	if (statesByCode == null) {
+        		 statesByCode = new CableState[4];
+        	}
             statesByCode[cableState.getCode()] = cableState;
         }
         
         public int getCode() {
             return code;
         }
-
-        private final int code;
-        private static final CableState[] statesByCode = new CableState[4];
     }
     
     private final CableState socket1CableState;
@@ -77,10 +81,13 @@ class WallboxReading {
         }
         
         private void cache(Mode3State mode3State) {
+        	if (byName == null) {
+        		byName = new HashMap<>();
+        	}
             byName.put(mode3State.name(), mode3State);
         }
         
-        private final static Map<String, Mode3State> byName = new HashMap<>();
+        private static Map<String, Mode3State> byName;
     }
     
     private final Mode3State socket1Mode3State;
@@ -90,7 +97,7 @@ class WallboxReading {
         return new WallboxReading(Instant.ofEpochMilli(Long.valueOf(fields[0]) / 1000000l), // convert from nanos to millis
                 Double.valueOf(fields[1]), Double.valueOf(fields[2]), Double.valueOf(fields[3]),
                 Double.valueOf(fields[4]), Double.valueOf(fields[5]), Double.valueOf(fields[6]),
-                CableState.ofCode(Integer.valueOf(fields[7])), Mode3State.ofName(fields[8]));
+                CableState.ofCode(Integer.valueOf(fields[7].trim())), Mode3State.ofName(fields[8].trim()));
     }
 
     public WallboxReading(Instant time, double currentPhase1InAmperes, double currentPhase2InAmperes,

@@ -157,20 +157,23 @@ public class AggregateCarCharge {
         }
         // now readingPv is at or after readingEbox; read until PV reading's time point is at or after nextReadingEbox
         while (nextReadingEbox != null && readingPv != null) {
-        	virtualCar.update(readingPv, readingEbox);
-            if (!linePv.trim().isEmpty()) {
-                final BatteryUseReading reading = BatteryUseReading.parse(linePv);
-                if (!virtualBatterySOCInitialized) {
+            readingPv = BatteryUseReading.parse(linePv);
+            if (!readingPv.getTime().isBefore(readingEbox.getTime())) {
+            	lineEbox = nextLineEbox;
+            	readingEbox = WallboxReading.parse(lineEbox);
+            	nextLineEbox = readerEbox.readLine();
+            }
+            lastTimestamp = readingPv.getTime();
+            lastPowerAvailableForChargingInWatts = readingPv.getPvProductionInWatts()
+            		- readingPv.getHomeOwnConsumptionInWatts();
+            virtualCar.update(readingPv, readingEbox);
+            if (!virtualBatterySOCInitialized) {
 //                    virtualBattery.setSOCPercent(reading.getBatterySOC());
 //                    virtualBatterySOCInitialized = true;
-                }
-                if (lastTimestamp != null) {
+            }
+            if (lastTimestamp != null) {
 //                    virtualBattery.charge(lastPowerAvailableForChargingInWatts, lastTimestamp,
 //                            Duration.between(lastTimestamp, reading.getTime()));
-                }
-                lastTimestamp = reading.getTime();
-                lastPowerAvailableForChargingInWatts = reading.getPvProductionInWatts()
-                        - reading.getHomeOwnConsumptionInWatts();
             }
         }
         return virtualCar;
