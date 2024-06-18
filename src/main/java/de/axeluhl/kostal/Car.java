@@ -9,6 +9,22 @@ package de.axeluhl.kostal;
  *
  */
 public class Car {
+    private final double maximumChargePowerInWatts;
+    
+    private final double batteryNetCapacityInKiloWattHours;
+    
+    /**
+     * The state of charge (SOC) in percent
+     */
+    private double socInPercent;
+    
+    public Car(double maximumChargePowerInWatts, double batteryNetCapacityInKiloWattHours) {
+        super();
+        this.maximumChargePowerInWatts = maximumChargePowerInWatts;
+        this.batteryNetCapacityInKiloWattHours = batteryNetCapacityInKiloWattHours;
+        this.socInPercent = 0.0;
+    }
+
     /**
      * Updates the car battery state depending on current approximated state of charge and the wallbox set-up
      * 
@@ -20,7 +36,16 @@ public class Car {
      *            would allow for it, then we know that the car is about to reach the end of its charging cycle)
      */
     public void update(BatteryUseReading readingPv, WallboxReading readingEbox) {
+        updateChargingStateBasedOnPowerReduction(readingPv, readingEbox);
+        if (socInPercent < 100) {
+            // TODO we're missing the interval duration between the previous and the current reading, so how to update the SOC appropriately?
+        }
         // TODO Auto-generated method stub
 
+    }
+
+    private void updateChargingStateBasedOnPowerReduction(BatteryUseReading readingPv, WallboxReading readingEbox) {
+        // TODO Auto-generated method stub
+        
     }
 }

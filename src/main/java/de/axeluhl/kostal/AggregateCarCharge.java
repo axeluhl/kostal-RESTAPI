@@ -55,8 +55,18 @@ public class AggregateCarCharge {
     private static final int DEFAULT_MAX_CHARGE_POWER_IN_WATTS = 5600;
 
     private static final int DEFAULT_MIN_SOC_PERCENT = 5;
+    
+    private static final int DEFAULT_CAR_BATTERY_NET_CAPACITY_IN_WATT_HOURS = 10300;
+    
+    private static final double DEFAULT_CAR_MAXIMUM_CHARGE_POWER_IN_WATTS = 3510;
 
     public static void main(String[] args) throws IOException {
+        final Option carBatteryNetCapacityInWattHours = Option.builder("k").longOpt("carCapacityInWattHours").hasArg().argName("carCapacityInWattHours")
+                .type(Number.class)
+                .desc("car battery net capacity in Wh; defaults to " + DEFAULT_CAR_BATTERY_NET_CAPACITY_IN_WATT_HOURS).build();
+        final Option carMaximumChargePowerInWatts = Option.builder("m").longOpt("carMaximumChargePowerInWatts").hasArg().argName("carMaximumChargePowerInWatts")
+                .type(Number.class)
+                .desc("car maximum charging power in Watts; defaults to " + DEFAULT_CAR_BATTERY_NET_CAPACITY_IN_WATT_HOURS).build();
         final Option minSOCPercent = Option.builder("m").longOpt("minSOCPercent").hasArg().argName("minSOCPercent")
                 .type(Number.class)
                 .desc("minimum state of charge (SOC) in percent; defaults to " + DEFAULT_MIN_SOC_PERCENT).build();
@@ -82,10 +92,18 @@ public class AggregateCarCharge {
                 .type(FileInputStream.class).desc("input file from which to read wallbox states").build();
         final Option helpOption = Option.builder("h").longOpt("help").desc("display help message").build();
         final Option helpOption2 = Option.builder("?").desc("display help message").build();
-        final Options options = new Options().addOption(minSOCPercent).addOption(maxChargePowerInWatts)
-                .addOption(capacityInWattHours).addOption(reducedChargePowerInWatts)
-                .addOption(socPercentWhereReducedChargePowerStarts).addOption(inputFilePv).addOption(inputFileEbox)
-                .addOption(helpOption).addOption(helpOption2);
+        final Options options = new Options()
+                .addOption(carBatteryNetCapacityInWattHours)
+                .addOption(carMaximumChargePowerInWatts)
+                .addOption(minSOCPercent)
+                .addOption(maxChargePowerInWatts)
+                .addOption(capacityInWattHours)
+                .addOption(reducedChargePowerInWatts)
+                .addOption(socPercentWhereReducedChargePowerStarts)
+                .addOption(inputFilePv)
+                .addOption(inputFileEbox)
+                .addOption(helpOption)
+                .addOption(helpOption2);
         final CommandLineParser commandLineParser = new DefaultParser();
         try {
             final CommandLine commandLine = commandLineParser.parse(options, args);
@@ -93,7 +111,7 @@ public class AggregateCarCharge {
                 HelpFormatter formatter = new HelpFormatter();
                 formatter.printHelp(AggregateCarCharge.class.getName(), options);
             } else {
-                final Car virtualCar = new Car();
+                final Car virtualCar = new Car(carMaximumChargePowerInWatts.getArgs(), carBatteryNetCapacityInWattHours.getArgs());
                 new AggregateCarCharge().aggregateCarCharging(virtualCar,
                         new InputStreamReader(commandLine.hasOption(inputFilePv)
                                 ? (FileInputStream) commandLine.getParsedOptionValue(inputFilePv)
