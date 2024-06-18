@@ -17,9 +17,15 @@ class BatteryUseReading {
 
     static BatteryUseReading parse(String line) {
         final String[] fields = line.split("[ \t]+");
-        return new BatteryUseReading(Instant.ofEpochMilli(Long.valueOf(fields[0]) / 1000000l), // convert from nanos to millis
+        final BatteryUseReading result;
+        if (fields.length != 6) {
+            result = null;
+        } else {
+            result = new BatteryUseReading(Instant.ofEpochMilli(Long.valueOf(fields[0]) / 1000000l), // convert from nanos to millis
                 Double.valueOf(fields[1]), Double.valueOf(fields[2]), Double.valueOf(fields[3]),
-                Integer.valueOf(fields[4]), Double.valueOf(fields[4]));
+                Integer.valueOf(fields[4]), Double.valueOf(fields[5]));
+        }
+        return result;
     }
 
     BatteryUseReading(Instant time, double homeOwnConsumptionInWatts, double pvProductionInWatts, double totalActivePowerInWatts,
