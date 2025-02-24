@@ -23,7 +23,10 @@ import org.apache.commons.cli.ParseException;
  * time       Home own consumption    PV production     Total active power (powermeter)     Battery actual SOC      Battery Charge
  * </pre>
  * 
- * where the time stamp in the first column has nanosecond precision, the default for InfluxDB output.
+ * where the time stamp in the first column has nanosecond precision, the default for InfluxDB output. This output can
+ * be obtained using the script <tt>kostal-dumpBatteryUse</tt> from this project's root folder. "Home own consumption"
+ * refers to the power currently consumed (including wallbox and/or heat pump). "Total active power" refers to the
+ * grid connection, so what is consumed from or ingested into the grid.
  * <p>
  * 
  * The {@link #main(String[])} method will show the savings by the battery over the time range covered by the

@@ -43,24 +43,49 @@ class BatteryUseReading {
         return time;
     }
 
+    /**
+     * How much power the house (including wallbox and/or heat pump) currently consumes, in Watts
+     */
     public double getHomeOwnConsumptionInWatts() {
         return homeOwnConsumptionInWatts;
     }
 
+    /**
+     * The power coming from the PV generator; this is prior to any grid or battery
+     * ingestion; measured in Watts.
+     */
     public double getPvProductionInWatts() {
         return pvProductionInWatts;
     }
 
+    /**
+     * Consuption from (if positive) / ingestion into (if negative) the grid, measured in Watts
+     */
     public double getTotalActivePowerInWatts() {
         return totalActivePowerInWatts;
     }
 
+    /**
+     * Battery state of charge, measured in percent (%)
+     */
     public int getBatterySOC() {
         return batterySOC;
     }
 
+    /**
+     * The power with which the battery is currently charged (in case of positive values)
+     * or discharged (in case of negative values); measured in Watts
+     */
     public double getBatteryChargeInWatts() {
         return batteryChargeInWatts;
+    }
+
+    /**
+     * Returns the excess power that you get when you subtract the {@link #getHomeOwnConsumptionInWatts() current home consumption)
+     * from the {@link #getPvProductionInWatts() current PV production}; measured in Watts
+     */
+    public double getExcessPVPowerInWatts() {
+        return getPvProductionInWatts() - getHomeOwnConsumptionInWatts();
     }
 
     @Override
@@ -69,4 +94,5 @@ class BatteryUseReading {
                 + ", pvProductionInWatts=" + pvProductionInWatts + ", totalActivePowerInWatts=" + getTotalActivePowerInWatts()
                 + ", batterySOC=" + batterySOC + ", batteryChargeInWatts=" + getBatteryChargeInWatts() + "]";
     }
+
 }

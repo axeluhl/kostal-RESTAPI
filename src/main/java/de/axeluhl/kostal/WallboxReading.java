@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 class WallboxReading {
+    private static final double VOLTAGE_PER_PHASE = 230;
+    
     private final Instant time;
 
     private final double currentPhase1InAmperes;
@@ -130,6 +132,22 @@ class WallboxReading {
     public double getCurrentPhase3InAmperes() {
         return currentPhase3InAmperes;
     }
+    
+    public double getPowerPhase1InWatts() {
+        return getCurrentPhase1InAmperes() * VOLTAGE_PER_PHASE;
+    }
+
+    public double getPowerPhase2InWatts() {
+        return getCurrentPhase2InAmperes() * VOLTAGE_PER_PHASE;
+    }
+
+    public double getPowerPhase3InWatts() {
+        return getCurrentPhase3InAmperes() * VOLTAGE_PER_PHASE;
+    }
+    
+    public double getPowerInWatts() {
+        return getPowerPhase1InWatts() + getPowerPhase2InWatts() + getPowerPhase3InWatts();
+    }
 
     public double getMaxCurrentPhase1InAmperes() {
         return maxCurrentPhase1InAmperes;
@@ -141,6 +159,22 @@ class WallboxReading {
 
     public double getMaxCurrentPhase3InAmperes() {
         return maxCurrentPhase3InAmperes;
+    }
+    
+    public double getMaxPowerPhase1InWatts() {
+        return getMaxCurrentPhase1InAmperes() * VOLTAGE_PER_PHASE;
+    }
+    
+    public double getMaxPowerPhase2InWatts() {
+        return getMaxCurrentPhase2InAmperes() * VOLTAGE_PER_PHASE;
+    }
+    
+    public double getMaxPowerPhase3InWatts() {
+        return getMaxCurrentPhase3InAmperes() * VOLTAGE_PER_PHASE;
+    }
+    
+    public double getMaxPowerInWatts() {
+        return getMaxPowerPhase1InWatts() + getMaxPowerPhase2InWatts() + getMaxPowerPhase3InWatts();
     }
 
     public CableState getSocket1CableState() {

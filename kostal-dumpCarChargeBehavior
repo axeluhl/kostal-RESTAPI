@@ -1,7 +1,8 @@
 #!/bin/bash
 INFLUX_HOST=klo.axeluhl.de
 DB=kostal
-NUMBER_OF_DAYS_TO_STREAM=3650
+NUMBER_OF_DAYS_TO_STREAM=30
+#NUMBER_OF_DAYS_TO_STREAM=3650
 PV_OUT=$( basename "${0}" )-pv.out
 EBOX_OUT=$( basename "${0}" )-ebox.out
 rm "${PV_OUT}"
