@@ -41,7 +41,13 @@ import org.apache.commons.cli.ParseException;
  * <li>How much the car charged from the grid</li>
  * <li>How much the car charged from the PV where this energy would otherwise have been ingested</li>
  * <li>How much energy was ingested because the car was still attached but the battery was already full</li>
+ * <li>And can we figure out how much more of the ingested energy the car would have used instead of
+ *     grid energy in case its battery had been of larger capacity?</li>
  * </ul>
+ * In short, for a car configuration with a battery capacity and the plugged-in profile and the PV stats, we'd like to
+ * know how much PV energy that wouldn't have been used by the house otherwise the car would have consumed. With this
+ * we can then calculate the cost for the power the car consumed: low PV rate (9.7ct/kWh) for the energy used to charge
+ * the car which otherwise would have been ingested; full race (e.g., 34ct/kWh) otherwise.
  * 
  * @author Axel Uhl
  */
