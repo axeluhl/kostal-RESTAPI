@@ -1,0 +1,36 @@
+#!/bin/bash
+# Extracts the average of grid consumption / ingestion from the "Total active power (powermeter)" field
+# from the "pv" measurement
+
+function usage() {
+  echo "Usage: $0 -d <database> -h <host> -m <minutes>" >&2
+}
+
+HOST=""
+DB=""
+MINUTES=""
+while getopts "h:d:m:" opt; do
+  case "$opt" in
+    d)
+      DB="$OPTARG"
+      ;;
+    h)
+      HOST="$OPTARG"
+      ;;
+    m)
+      MINUTES="$OPTARG"
+      ;;
+    *)
+      usage
+      exit 1
+      ;;
+  esac
+done
+# Optionally shift off the processed options
+shift $((OPTIND - 1))
+if [ -z "${DB}" -o -z "${HOST}" -o -z "${MINUTES}" ]; then
+  usage
+  exit 1
+fi
+influx_command='SELECT mean("Total active power (powermeter)") *-1 FROM "pv" WHERE time >= now() - '${MINUTES}'m'
+echo "${influx_command}" | influx -database "${DB}" -host "${HOST}" 2>/dev/null | tail -1 | awk '{ print $2; }'
