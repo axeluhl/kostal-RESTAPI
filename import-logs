@@ -1,0 +1,42 @@
+#!/bin/bash
+# --- CONFIGURATION ---
+MEASUREMENT="pv"
+CSV_FILE="${1}"
+if [ -z "$CSV_FILE" ]; then
+    echo "Usage: $0 <file.csv>"
+    exit 1
+fi
+echo "Processing ${CSV_FILE}..." >&2
+# Process the file with AWK
+awk -F'\t' '
+    # 1. Define the function OUTSIDE the processing block
+    function add_f(name, val, scale) {
+        if (val != "" && val != "-") {
+            scaled_val = val / scale;
+            line = (line == "" ? "" : line ",") name "=" scaled_val;
+        }
+    }
+    # 2. Main processing block
+    NR > 6 {
+        # Skip rows without a valid timestamp
+        if ($1 == "" || $1 == "Zeit") next;
+        line = "";
+        # DC Strings (mA to A)
+        add_f("Voltage_DC1", $2, 1);   add_f("Current_DC1", $3, 1000);   add_f("Power_DC1", $4, 1);
+        add_f("Voltage_DC2", $7, 1);   add_f("Current_DC2", $8, 1000);   add_f("Power_DC2", $9, 1);
+        add_f("Voltage_DC3", $12, 1);  add_f("Current_DC3", $13, 1000);  add_f("Power_DC3", $14, 1);
+        # AC Phases (mA to A)
+        add_f("Voltage_P1", $17, 1);   add_f("Current_P1", $18, 1000);   add_f("Power_P1", $19, 1);
+        add_f("Voltage_P2", $21, 1);   add_f("Current_P2", $22, 1000);   add_f("Power_P2", $23, 1);
+        add_f("Voltage_P3", $25, 1);   add_f("Current_P3", $26, 1000);   add_f("Power_P3", $27, 1);
+        # General
+        add_f("Grid_Frequency", $29, 1);
+        add_f("Battery_SOC", $48, 1);
+        add_f("Battery_Temp", $49, 1);
+        add_f("Total_Yield", $52, 1);
+        # Output Line Protocol: Measurement field=val timestamp
+        if (line != "") {
+            print m " " line " " $1;
+        }
+    }
+' m="$MEASUREMENT" "$CSV_FILE"
