@@ -1,0 +1,8 @@
+#!/bin/bash
+# Keep battery from charging for $1 minutes
+# Example:
+#   kostal-noCharge 240
+# This will disable battery charging for 240 minutes starting now.
+# After the time has passed, battery control configuration will
+# be reset to the state it was in when this script was invoked.
+kostal-setBatteryTimeControl $1 1
